@@ -1,0 +1,159 @@
+<%-include('../layouts/header')  %>
+<!-- Font Awesome CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<style>
+    /* Custom styles */
+    .form-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .form-control:focus {
+        border-color: #CA1515 !important;
+        box-shadow: none !important;
+    }
+
+    .btn-primary:hover {
+        background-color: #CA1515 !important;
+        border-color: #CA1515 !important;
+    }
+
+    .forgot-password a:hover,
+    .social-icons a:hover,
+    .create-account a:hover {
+        color: #CA1515;
+    }
+
+    .card {
+        width: 400px; /* Adjust the width of the card */
+        border-radius: 10px; /* Add border radius */
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); /* Add 3D effect */
+        position: relative; /* Add position relative for the glow effect */
+        transition: all 0.3s ease-in-out; /* Add a smooth transition */
+    }
+
+    .card:hover::before {
+        content: "";
+        position: absolute;
+        top: -5px;
+        left: -5px;
+        right: -5px;
+        bottom: -5px;
+        border-radius: 15px;
+        background: linear-gradient(45deg, #CA1515, #FF4D4D, #CA1515);
+        z-index: -1;
+        filter: blur(10px);
+        opacity: 0.8;
+    }
+
+    .social-icons .icon {
+        margin-right: 10px; /* Add margin between the icons */
+    }
+
+    /* Additional text style */
+    .additional-text {
+        font-size: 0.9rem;
+        margin-top: 20px;
+    }
+
+    /* Error message style */
+    .error-message {
+        color: red;
+        font-size: 0.8rem;
+        margin-top: 5px;
+    }
+</style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-8 form-container">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="text-center">Welcome back!</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="loginForm" method="post" action="/login">
+                            <div class="form-group">
+                                <% if (messages.success) { %>
+                                    <div class="alert alert-success flash-message" role="alert" style="color: green;" data-timeout="5">
+                                      <%= messages.success %>
+                                    </div>
+                                  <% } %>
+
+                                  <% if (messages.error) { %>
+                                    <div class="alert alert-danger flash-message" role="alert" style="color: red;" data-timeout="5">
+                                      <%= messages.error %>
+                                    </div>
+                                  <% } %>
+                                <label for="email">Email</label><span style="color: red;">*</span>
+                                <input type="email" class="form-control" id="email" name="email">
+                                <div id="emailError" class="error-message"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password</label><span style="color: red;">*</span>
+                                <input type="password" class="form-control" id="password" name="password">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Login</button>
+                        </form>
+                        <p class="text-center forgot-password">
+                            <a href="/forgotPassword" class="text-decoration-none">Forgot Password?</a>
+                        </p>
+                        <div class="social-icons text-center">
+                            <a href="">
+                                <img width="40" height="40" src="https://img.icons8.com/color/48/google-logo.png" alt="google-logo"/>
+                            </div>
+                        <p class="text-center create-account">
+                            New to Nashifa ? <a href="/signUp" class="text-decoration-none">Create Account</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const flashMessages = document.querySelectorAll('.flash-message[data-timeout]');
+
+        for (const message of flashMessages) {
+            const timeout = parseInt(message.dataset.timeout, 10) * 1000; // Convert seconds to milliseconds
+            setTimeout(() => {
+                message.parentNode.removeChild(message);
+            }, timeout);
+        }
+
+        const emailInput = document.getElementById("email");
+        const emailError = document.getElementById("emailError");
+
+        function validateEmail(email) {
+            return email.endsWith("@gmail.com");
+        }
+
+        function handleInput() {
+            const email = emailInput.value.trim();
+            if (email === "") {
+                emailError.textContent = "";
+            } else if (!validateEmail(email)) {
+                emailError.textContent = "Please enter a valid Gmail address.";
+            } else {
+                emailError.textContent = "";
+            }
+        }
+
+        emailInput.addEventListener("input", handleInput);
+
+        document.getElementById("loginForm").addEventListener("submit", function(event) {
+            const email = emailInput.value.trim();
+            if (!validateEmail(email)) {
+                event.preventDefault();
+                emailError.textContent = "Please enter a valid Gmail address.";
+                emailInput.focus();
+            } else {
+                emailError.textContent = "";
+            }
+        });
+    </script>
+<%-include('../layouts/footer')  %>

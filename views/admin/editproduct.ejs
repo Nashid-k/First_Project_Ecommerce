@@ -1,0 +1,176 @@
+<%- include('../layouts/adminheader') %>
+
+<div class="container" style="margin-left: 120px;">
+  <div class="card" style="margin-left: 120px;">
+    <div class="card-body">
+      <h5 class="card-title mb-4">Edit Product</h5>
+      <form id="updateProductForm" enctype="multipart/form-data">
+    
+        <input type="hidden" value="<%= productData._id %>">
+        <% if (messages && messages.success) { %>
+          <div class="alert alert-success flash-message" role="alert" style="color: green;" data-timeout="5000">
+            <%= messages.success %>
+          </div>
+        <% } %>
+
+        <% if (messages && messages.error) { %>
+          <div class="alert alert-danger flash-message" role="alert" style="color: red;" data-timeout="5000">
+            <%= messages.error %>
+          </div>
+        <% } %>
+        <div class="mb-3">
+          <label for="productCategory" class="form-label">Category</label>
+          <select class="form-control" id="productCategory" name="category" required>
+            <option value="">Select a category</option>
+            <% if (categoryData && categoryData.length > 0) { %>
+              <% categoryData.forEach(category => { %>
+                <option value="<%= category._id %>" <% if (productData.category && productData.category.toString() === category._id.toString()) { %> selected <% } %>><%= category.name %></option>
+              <% }) %>
+            <% } %>
+          </select>
+        </div>
+
+       
+
+        <div class="mb-3">
+          <label for="productName" class="form-label">Product Name</label>
+          <input type="text" class="form-control" id="productName" name="name" required value="<%= productData.name %>">
+        </div>
+
+        <div class="mb-3">
+          <label for="productDescription" class="form-label">Description</label>
+          <textarea class="form-control" id="productDescription" name="description" rows="3" required><%= productData.description %></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label for="productPrice" class="form-label">Price</label>
+          <input type="number" class="form-control" id="productPrice" name="price" required value="<%= productData.price %>">
+        </div>
+
+        <div class="mb-3">
+          <label for="productQuantity" class="form-label">Quantity</label>
+          <input type="number" class="form-control" id="productQuantity" name="quantity" required value="<%= productData.quantity %>">
+        </div>
+
+        <div class="mb-3">
+          <label for="productSize" class="form-label">Size</label>
+          <select class="form-control" id="productSize" name="size" required>
+            <option value="">Select a size</option>
+            <option value="small" <% if (productData.size === 'small') { %> selected <% } %>>Small</option>
+            <option value="medium" <% if (productData.size === 'medium') { %> selected <% } %>>Medium</option>
+            <option value="large" <% if (productData.size === 'large') { %> selected <% } %>>Large</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="mainImage" class="form-label">Main Image</label>
+          <% if (productData.mainImage) { %>
+            <img src="/uploads/products/<%= productData.mainImage %>" alt="Main Image" style="max-width: 200px; max-height: 150px; object-fit: cover;">
+          <% } else { %>
+            <span>No image available</span>
+          <% } %>
+          <input type="file" class="form-control" id="mainImage" name="mainImage" accept="image/*" onchange="previewImage(event, 'mainImagePreview')">
+          <img id="mainImagePreview" src="" alt="Main Image Preview" style="max-width: 200px; max-height: 150px; object-fit: cover; display: none;" />
+        </div>
+
+        <div class="mb-3">
+          <label for="screenshots" class="form-label">Screenshots (max 4)</label>
+          <div id="screenshotPreviews" class="d-flex flex-wrap mt-2">
+            <% if (productData.screenshots && productData.screenshots.length > 0) { %>
+              <% productData.screenshots.forEach(screenshot => { %>
+                <img src="/uploads/products/<%= screenshot %>" style="max-width: 100px; max-height: 100px; object-fit: cover; margin-right: 10px;">
+              <% }) %>
+            <% } %>
+          </div>
+          <input type="file" class="form-control" id="screenshots" name="screenshots" accept="image/*" multiple onchange="previewImages(event, 'screenshotPreviews')">
+        </div>
+
+        <button type="button" class="btn btn-primary" onclick="submitForm()">Update Product</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../layouts/adminfooter') %>
+
+<script>
+  function previewImage(event, previewId) {
+    const preview = document.getElementById(previewId);
+    const file = event.target.files[0];
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onload = function() {
+        preview.src = reader.result;
+        preview.style.display = 'block';
+      }
+
+      reader.readAsDataURL(file);
+    } else {
+      preview.src = "";
+      preview.style.display = 'none';
+    }
+  }
+
+  function previewImages(event, previewId) {
+    const previews = document.getElementById(previewId);
+    previews.innerHTML = ''; 
+
+    const files = event.target.files;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      if (file) {
+        const reader = new FileReader();
+
+        reader.onload = function() {
+          const img = document.createElement('img');
+          img.src = reader.result;
+          img.style.maxWidth = '100px';
+          img.style.maxHeight = '100px';
+          img.style.objectFit = 'cover';
+          img.style.marginRight = '10px';
+          previews.appendChild(img);
+        }
+
+        reader.readAsDataURL(file);
+      }
+    }
+  }
+
+  function submitForm() {
+    const form = document.getElementById('updateProductForm');
+    const formData = new FormData(form);
+    const productId = formData.get('_id');
+
+    fetch(`/admin/updateProduct/${productId}`, {
+      method: 'PUT',
+      body: formData
+    })
+    .then(response => {
+      if (response.ok) {
+       
+        console.log('Product updated successfully');
+     
+      } else {
+        
+        console.error('Failed to update product');
+
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  }
+
+  const flashMessages = document.querySelectorAll('.flash-message[data-timeout]');
+
+  flashMessages.forEach(message => {
+    const timeout = parseInt(message.dataset.timeout, 10);
+    setTimeout(() => {
+      message.remove();
+    }, timeout);
+  });
+</script>

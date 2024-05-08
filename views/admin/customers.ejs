@@ -1,0 +1,161 @@
+<%- include('../layouts/adminheader') %>
+
+<div class="container" style="margin-left: 120px;">
+  <div class="card" style="margin-left: 120px;">
+    <div class="card-body">
+      <h5 class="card-title mb-4">Customers</h5>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Joined At</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% userData.forEach((user, index) => { %>
+              <tr>
+                <td><%= user.name %></td>
+                <td><%= user.email %></td>
+                <td><%= user.joinedAtFormatted %></td>
+                <td>
+                  <span id="status-<%= user._id %>" class="badge <%= user.block ? 'bg-secondary' : 'bg-success' %>">
+                    <%= user.block ? 'Inactive' : 'Active' %>
+                  </span>
+                </td>
+                <td>
+                  <div class="btn-group" role="group">
+                    <% if (user.block) { %>
+                      <button onclick="handleUnblock('<%= user._id %>')" id="unblockButton-<%= user._id %>" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Unblock">
+                        <i class="bx bx-check-circle"></i>
+                      </button>
+                    <% } else { %>
+                      <button onclick="handleBlock('<%= user._id %>')" id="blockButton-<%= user._id %>" class="btn btn-warning" data-bs-toggle="tooltip" data-bs-placement="top" title="Block">
+                        <i class="bx bx-block"></i>
+                      </button>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../layouts/adminfooter') %>
+
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+<script>
+
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+
+  async function handleBlock(userId) {
+    const confirmation = await confirmAction("block");
+    if (confirmation) {
+      try {
+        const response = await fetch("/admin/block", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+        });
+
+        if (response.ok) {
+          // Update UI if blocking was successful
+          const statusSpan = document.querySelector(`#status-${userId}`);
+          const blockButton = document.querySelector(`#blockButton-${userId}`);
+          if (statusSpan && blockButton) {
+            statusSpan.textContent = "Inactive";
+            statusSpan.classList.remove("bg-success");
+            statusSpan.classList.add("bg-secondary");
+            blockButton.innerHTML = '<i class="bx bx-check-circle"></i>';
+            blockButton.classList.remove("btn-warning");
+            blockButton.classList.add("btn-success");
+            blockButton.setAttribute("onclick", `handleUnblock('${userId}')`);
+            blockButton.setAttribute("title", "Unblock");
+            blockButton.setAttribute("id", `unblockButton-${userId}`);
+          }
+          swal("Success", "User blocked successfully", "success");
+        } else {
+          swal("Error", "Failed to block user", "error");
+          console.error("Failed to block user:", response.status);
+        }
+      } catch (error) {
+        console.error("Error blocking user:", error.message);
+        swal("Error", "An error occurred while blocking the user", "error");
+      }
+    }
+  }
+
+  async function handleUnblock(userId) {
+    const confirmation = await confirmAction("unblock");
+    if (confirmation) {
+      try {
+        const response = await fetch("/admin/unblock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+        });
+
+        if (response.ok) {
+          // Update UI if unblocking was successful
+          const statusSpan = document.querySelector(`#status-${userId}`);
+          const unblockButton = document.querySelector(`#unblockButton-${userId}`);
+          if (statusSpan && unblockButton) {
+            statusSpan.textContent = "Active";
+            statusSpan.classList.remove("bg-secondary");
+            statusSpan.classList.add("bg-success");
+            unblockButton.innerHTML = '<i class="bx bx-block"></i>';
+            unblockButton.classList.remove("btn-success");
+            unblockButton.classList.add("btn-warning");
+            unblockButton.setAttribute("onclick", `handleBlock('${userId}')`);
+            unblockButton.setAttribute("title", "Block");
+            unblockButton.setAttribute("id", `blockButton-${userId}`);
+          }
+          swal("Success", "User unblocked successfully", "success");
+        } else {
+          swal("Error", "Failed to unblock user", "error");
+          console.error("Failed to unblock user:", response.status);
+        }
+      } catch (error) {
+        console.error("Error unblocking user:", error.message);
+        swal("Error", "An error occurred while unblocking the user", "error");
+      }
+    }
+  }
+
+  async function confirmAction(action) {
+    let confirmationText;
+    switch (action) {
+      case "block":
+        confirmationText = "block this user";
+        break;
+      case "unblock":
+        confirmationText = "unblock this user";
+        break;
+      default:
+        confirmationText = "perform this action";
+    }
+
+    return new Promise((resolve) => {
+      swal({
+        title: `Are you sure you want to ${confirmationText}?`,
+        text: "Once confirmed, the action cannot be undone.",
+        icon: "warning",
+        buttons: ["Cancel", "Confirm"],
+        dangerMode: true,
+      }).then((confirmed) => {
+        resolve(confirmed);
+      });
+    });
+  }
+</script>

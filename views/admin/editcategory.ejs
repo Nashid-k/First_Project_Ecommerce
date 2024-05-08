@@ -1,0 +1,104 @@
+<%- include('../layouts/adminheader') %>
+
+<div class="container" style="margin-left: 120px;">
+  <div class="card" style="margin-left: 120px;">
+    <div class="card-body">
+      <h5 class="card-title mb-4">Edit Category</h5>
+
+      <div id="flash-messages"></div>
+
+      <form action="/admin/updateCategory/<%= category._id %>" method="POST">
+     
+        <% if (messages.success) { %>
+          <div class="alert alert-success flash-message" role="alert" style="color: green;" data-timeout="5">
+            <%= messages.success %>
+          </div>
+        <% } %>
+        <% if (messages.error) { %>
+          <div class="alert alert-danger flash-message" role="alert" style="color: red;" data-timeout="5">
+            <%= messages.error %>
+          </div>
+        <% } %>
+
+        <input type="hidden" name="_method" value="PUT" />
+
+        <div class="mb-3">
+          <label for="categoryName" class="form-label">Category Name</label>
+          <input type="text" class="form-control" id="categoryName" name="name" required value="<%= category.name %>" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update Category</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../layouts/adminfooter') %>
+
+<script>
+
+
+
+  const flashMessagesContainer = document.getElementById('flash-messages');
+
+  function clearFlashMessages() {
+    while (flashMessagesContainer.firstChild) {
+      flashMessagesContainer.removeChild(flashMessagesContainer.firstChild);
+    }
+  }
+
+  function displayFlashMessage(type, message) {
+    clearFlashMessages(); 
+
+    const flashMessage = document.createElement('div');
+    flashMessage.classList.add('alert', `alert-${type}`);
+    flashMessage.setAttribute('role', 'alert');
+    flashMessage.textContent = message;
+    flashMessage.dataset.timeout = 5; 
+    flashMessage.classList.add('fade-in'); 
+
+    flashMessagesContainer.appendChild(flashMessage);
+
+    setTimeout(() => {
+      flashMessage.classList.add('fade-out'); 
+      flashMessage.addEventListener('transitionend', () => {
+        flashMessage.parentNode.removeChild(flashMessage);
+      });
+    }, flashMessage.dataset.timeout * 1000);
+  }
+
+
+  const form = document.getElementById('categoryForm') || document.querySelector('form');
+
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault(); 
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name: form.elements.name.value }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          displayFlashMessage('danger', errorData.error || 'An error occurred while updating the category');
+        } else {
+          const responseData = await response.json();
+          displayFlashMessage('success', responseData.message);
+
+      
+          setTimeout(() => {
+            window.location.href = responseData.redirect || '/admin/category';
+          }, 1500); 
+        }
+      } catch (error) {
+        console.error(error);
+        displayFlashMessage('danger', 'An error occurred while updating the category');
+      }
+    });
+  }
+</script>

@@ -1,0 +1,323 @@
+<%-include('../layouts/header')  %>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<style>
+
+    .form-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+   
+    }
+
+    .form-control:focus {
+        border-color: #CA1515 !important;
+        box-shadow: none !important;
+    }
+
+    .btn-primary:hover {
+        background-color: #CA1515 !important;
+        border-color: #CA1515 !important;
+    }
+
+    .forgot-password a:hover,
+    .social-icons a:hover,
+    .create-account a:hover {
+        color: #CA1515;
+    }
+
+    .card {
+        width: 400px; 
+        border-radius: 10px; 
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); 
+        position: relative; 
+        transition: all 0.3s ease-in-out; 
+    }
+
+    .card:hover::before {
+        content: "";
+        position: absolute;
+        top: -5px;
+        left: -5px;
+        right: -5px;
+        bottom: -5px;
+        border-radius: 15px;
+        background: linear-gradient(45deg, #CA1515, #FF4D4D, #CA1515);
+        z-index: -1;
+        filter: blur(10px);
+        opacity: 0.8;
+    }
+
+    .social-icons .icon {
+        margin-right: 10px; 
+    }
+
+    
+    .error {
+        color: #CA1515;
+        font-size: 0.8rem;
+        margin-top: 4px;
+    }
+
+  
+    .password-strength {
+        font-size: 0.8rem;
+        margin-top: 4px;
+    }
+
+    
+    .live-validation {
+        font-size: 0.8rem;
+        margin-top: 4px;
+        color: #6c757d;
+    }
+</style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 form-container">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">Create an Account</h3> 
+                </div>
+                <div class="card-body">
+                    <form id="signup-form" method="post" action="/signUp">
+                        <% if (messages.success) { %>
+                            <div class="alert alert-success" role="alert" style="color: green;">
+                                <%= messages.success %>
+                            </div>
+                            <% } %>
+    
+                            <% if (messages.error) { %>
+                            <div class="alert alert-danger" role="alert" style="color: red;">
+                                <%= messages.error %>
+                            </div>
+                            <% } %>
+
+                        <div class="form-group">
+                            <label for="name">Name </label><span style="color: red;">*</span>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                            <div class="error" id="name-error"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email </label><span style="color: red;">*</span>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                            <div class="error" id="email-error"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="mobile">Mobile Number </label><span style="color: red;">*</span>
+                            <input type="number" class="form-control" id="mobile" maxlength="11" pattern="[0-9]" name="mobile" required>
+                            <div class="error" id="mobile-error"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password </label><span style="color: red;">*</span>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                            <div class="error" id="password-error"></div>
+                            <div class="password-strength" id="password-strength"></div>
+                            <div class="live-validation" id="password-validation"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm_password">Confirm Password </label><span style="color: red;">*</span>
+                            <input type="password" class="form-control" id="cpassword" name="cpassword" required>
+                            <div class="error" id="cpassword-error"></div>
+                            <div class="live-validation" id="cpassword-validation"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Create an Account</button> 
+                    </form>
+                    <p class="text-center create-account">
+                        Already have an account? <a href="/login" class="text-decoration-none">Login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        function isPreviousFilled(inputElement) {
+            var previousInput = inputElement.previousElementSibling;
+            return previousInput.value.trim() !== '';
+        }
+
+
+        function toggleNextInput(currentInput) {
+            var nextInput = currentInput.nextElementSibling;
+            if (isPreviousFilled(currentInput)) {
+                nextInput.removeAttribute('disabled');
+            } else {
+                nextInput.setAttribute('disabled', 'disabled');
+            }
+        }
+
+
+        function setupInputListeners() {
+            var inputFields = document.querySelectorAll('.form-control');
+            inputFields.forEach(function(input) {
+                input.addEventListener('input', function() {
+                    toggleNextInput(this);
+                });
+            });
+        }
+
+        setupInputListeners();
+    });
+
+    document.getElementById('name').addEventListener('input', function() {
+        var name = this.value.trim(); 
+        var nameError = document.getElementById('name-error');
+
+        nameError.innerText = '';
+
+        if (name === '') {
+            nameError.innerText = 'Name cannot be empty';
+        }
+    });
+
+   
+    document.getElementById('name').addEventListener('keyup', function(event) {
+        if (event.keyCode === 8 || event.keyCode === 46) {
+            var nameError = document.getElementById('name-error');
+            nameError.innerText = '';
+        }
+    });
+
+   
+    document.getElementById('email').addEventListener('input', function() {
+        var email = this.value.trim(); 
+        var emailError = document.getElementById('email-error');
+
+
+        emailError.innerText = '';
+
+        if (email === '') {
+            emailError.innerText = 'Email cannot be empty';
+        }
+    });
+
+  
+    document.getElementById('email').addEventListener('keyup', function(event) {
+        if (event.keyCode === 8 || event.keyCode === 46) { 
+            var emailError = document.getElementById('email-error');
+            emailError.innerText = ''; 
+        }
+    });
+
+
+    document.getElementById('password').addEventListener('input', function() {
+        var password = this.value;
+        var strength = document.getElementById('password-strength');
+        var passwordValidation = document.getElementById('password-validation');
+        var uppercaseRegex = /[A-Z]/;
+        var specialCharRegex = /[@$!%*?&]/;
+        var numberRegex = /\d/;
+        var strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        var mediumRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$/;
+
+        passwordValidation.innerHTML = '';
+        strength.innerHTML = '';
+
+        if (password === '') {
+            return;
+        }
+
+        if (!uppercaseRegex.test(password)) {
+            passwordValidation.innerHTML = 'Include at least one uppercase letter.<br>';
+        } else if (!specialCharRegex.test(password)) {
+            passwordValidation.innerHTML += 'Include at least one special character.<br>';
+        } else if (!numberRegex.test(password)) {
+            passwordValidation.innerHTML += 'Include at least one number.<br>';
+        }
+
+        if (strongRegex.test(password)) {
+            strength.innerHTML = 'Strong';
+            strength.style.color = 'green';
+        } else if (mediumRegex.test(password)) {
+            strength.innerHTML = 'Medium';
+            strength.style.color = 'orange';
+        } else {
+            strength.innerHTML = 'Weak';
+            strength.style.color = 'red';
+        }
+    });
+
+    document.getElementById('cpassword').addEventListener('input', function() {
+        var password = document.getElementById('password').value;
+        var cpassword = this.value;
+        var cpasswordValidation = document.getElementById('cpassword-validation');
+
+        if (password === cpassword) {
+            cpasswordValidation.innerHTML = 'Passwords match.';
+            cpasswordValidation.style.color = 'green';
+        } else {
+            cpasswordValidation.innerHTML = 'Passwords do not match.';
+            cpasswordValidation.style.color = 'red';
+        }
+    });
+
+    
+    document.getElementById('cpassword').addEventListener('keyup', function(event) {
+        if (event.keyCode === 8 || event.keyCode === 46) { 
+            var cpasswordValidation = document.getElementById('cpassword-validation');
+            cpasswordValidation.innerText = ''; 
+        }
+    });
+
+   
+    document.getElementById('signup-form').addEventListener('submit', function(event) {
+        var name = document.getElementById('name').value.trim();
+        var email = document.getElementById('email').value.trim();
+        var mobile = document.getElementById('mobile').value.trim();
+        var password = document.getElementById('password').value.trim();
+        var cpassword = document.getElementById('cpassword').value.trim();
+
+        if (name === '' || email === '' || mobile === '' || password === '' || cpassword === '') {
+            event.preventDefault();
+            if (name === '') {
+                document.getElementById('name-error').innerText = 'Name cannot be empty';
+            }
+            if (email === '') {
+                document.getElementById('email-error').innerText = 'Email cannot be empty';
+            }
+            if (mobile === '') {
+                document.getElementById('mobile-error').innerText = 'Mobile number cannot be empty';
+            }
+            if (password === '') {
+                document.getElementById('password-error').innerText = 'Password cannot be empty';
+            }
+            if (cpassword === '') {
+                document.getElementById('cpassword-error').innerText = 'Confirm password cannot be empty';
+            }
+        } else {
+          
+            document.getElementById('name-error').innerText = '';
+            document.getElementById('email-error').innerText = '';
+            document.getElementById('mobile-error').innerText = '';
+            document.getElementById('password-error').innerText = '';
+            document.getElementById('cpassword-error').innerText = '';
+
+           
+        }
+    });
+
+   
+    function clearFlashMessages() {
+        var flashMessages = document.querySelectorAll('.alert');
+        flashMessages.forEach(function(message) {
+            setTimeout(function() {
+                message.remove(); 
+            }, 5000);
+        });
+    }
+
+
+    clearFlashMessages();
+</script>
+
+<%-include('../layouts/footer')  %>

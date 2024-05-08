@@ -1,0 +1,135 @@
+<%- include('../layouts/adminheader') %>
+
+<div class="container" style="margin-left: 120px;">
+  <div class="card" style="margin-left: 120px;">
+    <div class="card-body">
+      <h5 class="card-title mb-4">Add Product</h5>
+      <form action="/admin/insertProduct" method="POST" enctype="multipart/form-data">
+
+        <% if (messages && messages.success) { %>
+          <div class="alert alert-success flash-message" role="alert" style="color: green;" data-timeout="5000">
+            <%= messages.success %>
+          </div>
+        <% } %>
+
+        <% if (messages && messages.error) { %>
+          <div class="alert alert-danger flash-message" role="alert" style="color: red;" data-timeout="5000">
+            <%= messages.error %>
+          </div>
+        <% } %>
+        <div class="mb-3">
+          <label for="productCategory" class="form-label">Category</label>
+          <select class="form-control" id="productCategory" name="category" required>
+            <option value="">Select a category</option>
+            <% categoryData.forEach(category => { %>
+              <option value="<%= category._id %>"><%= category.name %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="productName" class="form-label">Product Name</label>
+          <input type="text" class="form-control" id="productName" name="name" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="productDescription" class="form-label">Description</label>
+          <textarea class="form-control" id="productDescription" name="description" rows="3" required></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label for="productPrice" class="form-label">Price</label>
+          <input type="number" class="form-control" id="productPrice" name="price" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="productQuantity" class="form-label">Quantity</label>
+          <input type="number" class="form-control" id="productQuantity" name="quantity" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="productSize" class="form-label">Size</label>
+          <select class="form-control" id="productSize" name="size" required>
+            <option value="">Select a size</option>
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="mainImage" class="form-label">Main Image</label>
+          <input type="file" class="form-control" id="mainImage" name="mainImage" accept="image/*" required onchange="previewImage(event, 'mainImagePreview')">
+          <img id="mainImagePreview" src="" alt="Main Image Preview" style="display: none; max-width: 200px; max-height: 150px; object-fit: cover;" />
+        </div>
+
+        <div class="mb-3">
+          <label for="screenshots" class="form-label">Screenshots (max 4)</label>
+          <input type="file" class="form-control" id="screenshots" name="screenshots" accept="image/*" multiple onchange="previewImages(event, 'screenshotPreviews')">
+          <div id="screenshotPreviews" class="d-flex flex-wrap mt-2"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Product</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../layouts/adminfooter') %>
+
+<script>
+  function previewImage(event, previewId) {
+    const preview = document.getElementById(previewId);
+    const file = event.target.files[0];
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onload = function() {
+        preview.src = reader.result;
+        preview.style.display = 'block';
+      }
+
+      reader.readAsDataURL(file);
+    } else {
+      preview.src = "";
+      preview.style.display = 'none';
+    }
+  }
+
+  function previewImages(event, previewId) {
+    const previews = document.getElementById(previewId);
+    previews.innerHTML = ''; // Clear previous previews
+
+    const files = event.target.files;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      if (file) {
+        const reader = new FileReader();
+
+        reader.onload = function() {
+          const img = document.createElement('img');
+          img.src = reader.result;
+          img.style.maxWidth = '100px';
+          img.style.maxHeight = '100px';
+          img.style.objectFit = 'cover';
+          img.style.marginRight = '10px';
+          previews.appendChild(img);
+        }
+
+        reader.readAsDataURL(file);
+      }
+    }
+  }
+
+  const flashMessages = document.querySelectorAll('.flash-message[data-timeout]');
+
+  flashMessages.forEach(message => {
+    const timeout = parseInt(message.dataset.timeout, 10);
+    setTimeout(() => {
+      message.remove();
+    }, timeout);
+  });
+</script>

@@ -1,0 +1,196 @@
+<%- include('../layouts/adminheader') %>
+
+<div class="container" style="margin-left: 120px;">
+  <div class="text-end mt-3">
+    <button class="btn btn-primary" onclick="handleAddProduct()" data-bs-toggle="tooltip" data-bs-placement="top" title="Add Product">
+      <i class="bx bx-plus-circle"></i> Add Product
+    </button>
+  </div>
+
+  <div class="card" style="margin-left: 120px;">
+    <div class="card-body">
+      <% if (messages.success) { %>
+        <div class="alert alert-success flash-message" role="alert" style="color: green;" data-timeout="5">
+          <%= messages.success %>
+        </div>
+      <% } %>
+
+      <% if (messages.error) { %>
+        <div class="alert alert-danger flash-message" role="alert" style="color: red;" data-timeout="5">
+          <%= messages.error %>
+        </div>
+      <% } %>
+
+      <h5 class="card-title mb-4">Products</h5>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Image</th>
+              <th>Description</th>
+              <th>Stock</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% productData.forEach((product, index) => { %>
+              <tr>
+                <td><%= product.name %></td>
+                <td>
+                  <div style="width: 50px; height: 70px; overflow: hidden; border: 1px solid #ccc; border-radius: 5px;">
+                    <img src="<%= process.env.BASE_URL %>/uploads/products/<%= product.mainImage %>" alt="<%= product.name %> category image" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
+                </td>
+                <td><%= product.description %></td>
+                <td><%= product.quantity %></td>
+                <td>
+                  <span id="status-<%= product._id %>" class="badge <%= product.unlisted ? 'bg-secondary' : 'bg-success' %>">
+                    <%= product.unlisted ? 'Unlisted' : 'Listed' %>
+                  </span>
+                </td>
+                <td>
+                  <div class="btn-group" role="group">
+                    <% if (product.unlisted) { %>
+                      <button onclick="handleList('<%= product._id %>')" id="listButton-<%= product._id %>" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top" title="List">
+                        <i class="bx bx-check-circle"></i>
+                      </button>
+                    <% } else { %>
+                      <button onclick="handleUnlist('<%= product._id %>')" id="unlistButton-<%= product._id %>" class="btn btn-warning" data-bs-toggle="tooltip" data-bs-placement="top" title="Unlist">
+                        <i class="bx bx-block"></i>
+                      </button>
+                    <% } %>
+                    <button onclick="handleEdit('<%= product._id %>')" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
+                      <i class="bx bx-edit-alt"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../layouts/adminfooter') %>
+
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+<script>
+  const flashMessages = document.querySelectorAll('.flash-message[data-timeout]');
+
+  for (const message of flashMessages) {
+    const timeout = parseInt(message.dataset.timeout, 10) * 1000; 
+    setTimeout(() => {
+      message.parentNode.removeChild(message);
+    }, timeout);
+  }
+
+  async function handleList(productId) {
+    const confirmation = await confirmAction("list");
+    if (confirmation) {
+      try {
+        const response = await fetch("/admin/listProduct", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId }),
+        });
+
+        if (response.ok) {
+          const statusSpan = document.querySelector(`#status-${productId}`);
+          const listButton = document.querySelector(`#listButton-${productId}`);
+          if (statusSpan && listButton) {
+            statusSpan.textContent = "Listed";
+            statusSpan.classList.remove("bg-secondary");
+            statusSpan.classList.add("bg-success");
+            listButton.innerHTML = '<i class="bx bx-block"></i>';
+            listButton.classList.remove("btn-success");
+            listButton.classList.add("btn-warning");
+            listButton.setAttribute("onclick", `handleUnlist('${productId}')`);
+            listButton.setAttribute("title", "Unlist");
+            listButton.setAttribute("id", `unlistButton-${productId}`);
+          }
+          swal("Success", "Product listed successfully", "success");
+        } else {
+          swal("Error", "Failed to list product", "error");
+          console.error("Failed to list product:", response.status);
+        }
+      } catch (error) {
+        console.error("Error listing product:", error.message);
+        swal("Error", "An error occurred while listing the product", "error");
+      }
+    }
+  }
+
+  async function handleUnlist(productId) {
+    const confirmation = await confirmAction("unlist");
+    if (confirmation) {
+      try {
+        const response = await fetch("/admin/unlistProduct", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId }),
+        });
+
+        if (response.ok) {
+          const statusSpan = document.querySelector(`#status-${productId}`);
+          const unlistButton = document.querySelector(`#unlistButton-${productId}`);
+          if (statusSpan && unlistButton) {
+            statusSpan.textContent = "Unlisted";
+            statusSpan.classList.remove("bg-success");
+            statusSpan.classList.add("bg-secondary");
+            unlistButton.innerHTML = '<i class="bx bx-check-circle"></i>';
+            unlistButton.classList.remove("btn-warning");
+            unlistButton.classList.add("btn-success");
+            unlistButton.setAttribute("onclick", `handleList('${productId}')`);
+            unlistButton.setAttribute("title", "List");
+            unlistButton.setAttribute("id", `listButton-${productId}`);
+          }
+          swal("Success", "Product unlisted successfully", "success");
+        } else {
+          swal("Error", "Failed to unlist product", "error");
+          console.error("Failed to unlist product:", response.status);
+        }
+      } catch (error) {
+        console.error("Error unlisting product:", error.message);
+        swal("Error", "An error occurred while unlisting the product", "error");
+      }
+    }
+  }
+
+  async function handleAddProduct() {
+    window.location.href = "/admin/addProduct";
+  }
+
+  async function handleEdit(productId) {
+    window.location.href = `/admin/editProduct?id=${productId}`;
+  }
+
+  async function confirmAction(action) {
+    let confirmationText;
+    switch (action) {
+      case "list":
+        confirmationText = "list this product";
+        break;
+      case "unlist":
+        confirmationText = "unlist this product";
+        break;
+      default:
+        confirmationText = "perform this action";
+    }
+    return new Promise((resolve) => {
+      swal({
+        title: `Are you sure you want to ${confirmationText}?`,
+        text: "Once confirmed, the action cannot be undone.",
+        icon: "warning",
+        buttons: ["Cancel", "Confirm"],
+        dangerMode: true,
+      }).then((confirmed) => {
+        resolve(confirmed);
+      });
+    });
+  }
+</script>

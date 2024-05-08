@@ -1,0 +1,175 @@
+<%- include('../layouts/adminheader') %>
+
+<div class="container" style="margin-left: 120px;">
+  <!-- Add Category Button -->
+  <div class="text-end mt-3">
+    <button class="btn btn-primary" onclick="handleAddCategory()" data-bs-toggle="tooltip" data-bs-placement="top" title="Add Category">
+      <i class="bx bx-plus-circle"></i> Add Category
+    </button>
+  </div>
+
+  <div class="card" style="margin-left: 120px;">
+    <div class="card-body">
+      <h5 class="card-title mb-4">Categories</h5>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Image</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="categoryTableBody">
+            <% categoryData.forEach((category, index) => { %>
+              <tr id="categoryRow-<%= category._id %>">
+                <td><%= category.name %></td>
+                <td>
+                  <img src="<%= process.env.BASE_URL %>/uploads/category/<%= category.categoryImage %>" alt="<%= category.name %> category image" width="50" height="70">
+                </td>
+                <td>
+                  <span id="status-<%= category._id %>" class="badge <%= category.is_listed ? 'bg-success' : 'bg-secondary' %>">
+                    <%= category.is_listed  ? 'Listed' : 'Unlisted' %>
+                  </span>
+                </td>
+                <td>
+                  <div class="btn-group" role="group">
+                    <% if (!category.is_listed) { %>
+                      <button onclick="handleList('<%= category._id %>')" class="btn btn-success listButton" data-bs-toggle="tooltip" data-bs-placement="top" title="List">
+                        <i class="bx bx-check-circle"></i>
+                      </button>
+                    <% } else { %>
+                      <button onclick="handleUnlist('<%= category._id %>')" class="btn btn-warning unlistButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Unlist">
+                        <i class="bx bx-block"></i>
+                      </button>
+                    <% } %>
+                    <button onclick="handleEdit('<%= category._id %>')" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
+                      <i class="bx bx-edit-alt"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../layouts/adminfooter') %>
+
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+<script>
+  const flashMessages = document.querySelectorAll('.flash-message[data-timeout]');
+
+  for (const message of flashMessages) {
+    const timeout = parseInt(message.dataset.timeout, 10) * 1000; 
+    setTimeout(() => {
+      message.parentNode.removeChild(message);
+    }, timeout);
+  }
+
+
+  async function handleAddCategory() {
+    window.location.href = "/admin/addCategory";
+  }
+
+  async function handleEdit(categoryId) {
+    window.location.href = `/admin/editCategory?id=${categoryId}`;
+  }
+
+  async function confirmAction(action) {
+    let confirmationText;
+    switch (action) {
+      case "list":
+        confirmationText = "list this category";
+        break;
+      case "unlist":
+        confirmationText = "unlist this category";
+        break;
+      default:
+        confirmationText = "perform this action";
+    }
+
+    return new Promise((resolve) => {
+      swal({
+        title: `Are you sure you want to ${confirmationText}?`,
+        text: "Once confirmed, the action cannot be undone.",
+        icon: "warning",
+        buttons: ["Cancel", "Confirm"],
+        dangerMode: true,
+      }).then((confirmed) => {
+        resolve(confirmed);
+      });
+    });
+  }
+
+  async function handleList(categoryId) {
+    const confirmation = await confirmAction("list");
+    if (confirmation) {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/admin/listCategory", true);
+      xhr.setRequestHeader("Content-Type", "application/json");
+
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          const data = JSON.parse(xhr.responseText);
+          if (data.success) {
+            swal("Success", data.success, "success").then(() => {
+              // Reload the page after successful operation
+              window.location.reload();
+            });
+          } else {
+            swal("Error", data.error, "error");
+          }
+        } else {
+          swal("Error", "Failed to list category", "error");
+          console.error("Failed to list category:", xhr.status);
+        }
+      };
+
+      xhr.onerror = function () {
+        console.error("Error listing category:", xhr.statusText);
+        swal("Error", "An error occurred while listing the category", "error");
+      };
+
+      xhr.send(JSON.stringify({ categoryId }));
+    }
+  }
+
+  async function handleUnlist(categoryId) {
+    const confirmation = await confirmAction("unlist");
+    if (confirmation) {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/admin/unlistCategory", true);
+      xhr.setRequestHeader("Content-Type", "application/json");
+
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          const data = JSON.parse(xhr.responseText);
+          if (data.success) {
+            swal("Success", data.success, "success").then(() => {
+              // Reload the page after successful operation
+              window.location.reload();
+            });
+          } else {
+            swal("Error", data.error, "error");
+          }
+        } else {
+          swal("Error", "Failed to unlist category", "error");
+          console.error("Failed to unlist category:", xhr.status);
+        }
+      };
+
+      xhr.onerror = function () {
+        console.error("Error unlisting category:", xhr.statusText);
+        swal("Error", "An error occurred while unlisting the category", "error");
+      };
+
+      xhr.send(JSON.stringify({ categoryId }));
+    }
+  }
+</script>

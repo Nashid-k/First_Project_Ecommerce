@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sidebar Example</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> <!-- Font Awesome icons -->
+  <style>
+    /* Adjust sidebar style as needed */
+    .sidebar {
+      /* height: 100%; */
+      width: 250px;
+      position: absolute;
+      top: 25%;
+      /* left: 0; */
+      background-color: white;
+      padding-top: 20px;
+      /* z-index: 1000;  */
+    }
+    .sidebar a {
+      padding: 10px 20px 10px 50px;
+      text-decoration: none;
+      font-size: 18px;
+      color: #333;
+      display: flex;
+      align-items: center; /* Centering icon and text vertically */
+    }
+    .sidebar a:hover {
+      background-color: #e9ecef;
+      color: #000; /* Change text color on hover */
+    }
+    .sidebar a.active {
+      background-color: red;
+      margin-left: 12px;
+      color: white;
+      width: 200px;
+      border-radius: 5px;
+      padding: 10px 20px 10px 50px;
+    }
+    .sidebar a i {
+      margin-right: 10px; /* Spacing between icon and text */
+      color: black; /* Icon color */
+    }
+    .sidebar a.active i {
+      color: white; /* Icon color when link is active */
+    }
+
+    /* Style for the main content area */
+    .content {
+      margin-left: 270px; /* Sidebar width + additional margin */
+      padding: 20px;
+    }
+
+    /* Flexbox layout for main content */
+    .wrapper {
+      display: flex;
+    }
+
+    /* Adjust width of main content area */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 70px;
+      }
+      .sidebar a {
+        padding: 10px;
+        font-size: 14px;
+      }
+      .content {
+        margin-left: 70px;
+      }
+    }
+  </style>
+
+
+  <!-- Sidebar -->
+  <div class="sidebar ">
+    <a href="/profile" class="active" data-toggle="tooltip" data-placement="right" title="My Profile"><i class="fas fa-user"></i> Profile</a>
+    <a href="#" data-toggle="tooltip" data-placement="right" title="Orders"><i class="fas fa-shopping-cart"></i> Orders</a>
+    <a href="#" data-toggle="tooltip" data-placement="right" title="Wishlist"><i class="fas fa-heart"></i> Wishlist</a>
+    <a href="#" data-toggle="tooltip" data-placement="right" title="Coupons"><i class="fas fa-tag"></i> Coupons</a>
+    <a href="#" data-toggle="tooltip" data-placement="right" title="Wallet"><i class="fas fa-wallet"></i> Wallet</a>
+    <a href="#" data-toggle="tooltip" data-placement="right" title="Reviews and Ratings"><i class="fas fa-star"></i> Reviews</a>
+    <a href="#" data-toggle="tooltip" data-placement="right" title="Logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+
+  <!-- Main content -->
+
+  <!-- JavaScript imports -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script>
+    $(document).ready(function(){
+      $('[data-toggle="tooltip"]').tooltip();
+
+      $(".sidebar a").click(function() {
+        $(".sidebar a").removeClass("active");
+        $(".sidebar a i").removeClass("active");
+        $(this).addClass("active");
+        $(this).find("i").addClass("active");
+      });
+    });
+  </script>
+</body>
+</html>

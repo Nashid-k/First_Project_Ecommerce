@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zxx" >
+<head>
+   <meta charset="UTF-8" />
+   <meta name="description" content="Ashion Template" />
+   <meta name="keywords" content="Ashion, unica, creative, html" />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+   <title>Nashifa | we make we sell</title>
+
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+   
+   <!-- Font Awesome CSS -->
+   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
+   <!-- Google Font -->
+   <link href="https://fonts.googleapis.com/css2?family=Cookie&display=swap" rel="stylesheet" />
+   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+   <!-- Css Styles -->
+   <link rel="stylesheet" href="/assets/css/bootstrap.min.css" type="text/css" />
+   <link rel="stylesheet" href="/assets/css/font-awesome.min.css" type="text/css" />
+   <link rel="stylesheet" href="/assets/css/elegant-icons.css" type="text/css" />
+   <link rel="stylesheet" href="/assets/css/jquery-ui.min.css" type="text/css" />
+   <link rel="stylesheet" href="/assets/css/magnific-popup.css" type="text/css" />
+   <link rel="stylesheet" href="/assets/css/owl.carousel.min.css" type="text/css" />
+   <link rel="stylesheet" href="/assets/css/slicknav.min.css" type="text/css" />
+   <link rel="stylesheet" href="/assets/css/style.css" type="text/css" />
+   
+   <!-- Custom Styles -->
+   <style>
+    
+       /* Custom styles */
+       .header__right {
+           display: flex;
+           align-items: center;
+           justify-content: flex-end;
+       }
+
+       .search-icon {
+           cursor: pointer;
+       }
+
+       .search-input {
+           position: relative;
+           margin-right: 20px;
+           display: block; /* Change display property to block or flex */
+       }
+
+       .search-input input[type="text"] {
+           width: 200px;
+           padding: 8px 30px 8px 10px;
+           border: 1px solid #ccc;
+           border-radius: 20px;
+           outline: none;
+       }
+
+       .search-input button {
+           position: absolute;
+           top: 0;
+           right: 0;
+           padding: 8px 10px;
+           background: none;
+           border: none;
+           outline: none;
+           cursor: pointer;
+       }
+
+       .social-icons .icon {
+           margin-right: 15px;
+           color: #888;
+           font-size: 18px;
+       }
+
+       .social-icons .icon:hover {
+           color: #CA1515;
+       }
+
+       /* Add margin between elements */
+       .header__right > * {
+           margin-right: 15px;
+       }
+
+       /* Active state style */
+       .header__menu ul li.active a {
+           color: #CA1515; /* Active color */
+       }
+
+       /* Inline CSS */
+       .user-info {
+           display: flex;
+           align-items: center;
+       }
+
+       .user-info .fa-user-circle {
+           margin-right: 5px;
+       }
+
+       .user-name {
+           overflow: hidden;
+           text-overflow: ellipsis;
+           white-space: nowrap;
+           max-width: 150px; /* Adjust the max-width according to your layout */
+       }
+   </style>
+</head>
+<body>
+   <!-- Page Preloder -->
+   <div id="preloder">
+       <div class="loader"></div>
+   </div>
+
+   <!-- Offcanvas Menu Begin -->
+   <div class="offcanvas-menu-overlay"></div>
+   <div class="offcanvas-menu-wrapper">
+       <div class="offcanvas__close">+</div>
+       <ul class="offcanvas__widget">
+           <li><span class="icon_search search-switch"></span></li>
+           <li>
+               <a href="#">
+                   <span class="icon_heart_alt"></span>
+                   <div class="tip">2</div>
+               </a>
+           </li>
+           <li>
+               <a href="#">
+                   <span class="icon_bag_alt"></span>
+                   <div class="tip">2</div>
+               </a>
+           </li>
+       </ul>
+       <div class="offcanvas__logo">
+           <a href="./index.html"><img src="/assets/img/logo2.png" alt="" /></a>
+       </div>
+       <div id="mobile-menu-wrap"></div>
+       <div class="offcanvas__auth">
+           <a href="#">Login</a>
+           <a href="#">Register</a>
+       </div>
+   </div>
+   <!-- Offcanvas Menu End -->
+
+   <!-- Header Section Begin -->
+   <header class="header">
+       <div class="container-fluid">
+           <div class="row align-items-center">
+               <div class="col-lg-3">
+                   <div class="header__logo">
+                       <a href="./index.html"><img src="/assets/img/logo2.png" alt="" /></a>
+                   </div>
+               </div>
+               <div class="col-lg-6">
+                   <nav class="header__menu">
+                       <ul>
+                           <li id="home"><a href="/">Home</a></li>
+                           <li id="women"><a href="#">Women's</a></li>
+                           <li id="men"><a href="#">Men's</a></li>
+                           <li id="shop"><a href="/shop">Shop</a></li>
+                       </ul>
+                   </nav>
+               </div>
+               <div class="col-lg-3">
+                   <div class="header__right">
+                       <div class="search-input">
+                           <input type="text" placeholder="Search...">
+                           <button type="submit"><i class="fa fa-search"></i></button>
+                       </div>
+
+                       <div class="dropdown">
+                           <% if (typeof userData != 'undefined') { %>
+                               <div class="user-info">
+                                   <i class="far fa-user-circle"></i>
+                                   <div class="user-name"><%= userData.name %></div>
+                               </div>
+                               
+                               <div class="dropdown-content">
+                                   <a href="/profile"><i class="fa fa-user"></i> My Profile</a>
+                                   <a href="./shop-cart.html"><i class="fa fa-shopping-cart"></i> Orders</a>
+                                   <a href="./checkout.html"><i class="fa fa-heart"></i> Wishlist</a>
+                                   <a href="./checkout.html"><i class="fa fa-tag"></i> Coupon</a>
+                                   <a href="/logout"><i class="fa fa-sign-out"></i> Logout</a>
+                               </div>
+                           <% } else { %>
+                               <a href="/login" class="droplgn">Login</a>
+                               <div class="dropdown-content">
+                                   <a href="/signUp"><i class="fa fa-user-plus"></i> New customer? Sign Up</a>
+                                   <a href="./blog-details.html"><i class="fa fa-user"></i> My Profile</a>
+                                   <a href="./shop-cart.html"><i class="fa fa-shopping-cart"></i> Orders</a>
+                                   <a href="./checkout.html"><i class="fa fa-heart"></i> Wishlist</a>
+                               </div>
+                           <% } %>
+                       </div>
+
+                       <ul class="header__right__widget">
+                           <li>
+                               <a href="/cart">
+                                   <i class="fa fa-shopping-cart" aria-hidden="true"></i>
+                               </a>
+                           </li>
+                       </ul>
+                   </div>
+               </div>
+           </div>
+       </div>
+   </header>
+   <!-- Header Section End -->
+    
+   <script>
+    // JavaScript to set active state
+    document.addEventListener("DOMContentLoaded", function() {
+        var url = window.location.pathname;
+        var filename = url.substring(url.lastIndexOf('/') + 1);
+        var activeMenuItem = document.getElementById(filename.split('.')[0]);
+        
+        // Set default active to Home
+        if (!activeMenuItem || filename === '') {
+            var homeMenuItem = document.getElementById('home');
+            if (homeMenuItem) {
+                homeMenuItem.classList.add('active');
+            }
+        } else {
+            activeMenuItem.classList.add('active');
+        }
+    });
+ </script>
+
+
+
+
+
+ 
+

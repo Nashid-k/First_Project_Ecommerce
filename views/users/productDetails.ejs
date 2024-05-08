@@ -1,0 +1,221 @@
+<%-include('../layouts/header')  %>
+
+<style>
+    /* CSS to adjust image size */
+    .product__details__pic img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .product__big__img {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
+
+<div class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__links">
+                    <a href="/"><i class="fa fa-home"></i> Home</a>
+                    <a href="/shop">Shop</a>
+                    <span><%= product.name %></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="product-details spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="product__details__pic">
+                    <div class="product__details__pic__left product__thumb nice-scroll">
+                        <% if (product.screenshots && product.screenshots.length > 0) { %>
+                            <% product.screenshots.slice(0, 4).forEach((screenshot, index) => { %>
+                                <img class="pt <%= index === 0 ? 'active' : '' %>" src="/uploads/products/<%= screenshot %>" alt="">
+                            <% }); %>
+                        <% } else { %>
+                            <!-- Display a placeholder image or message when no images are available -->
+                            <img class="pt" src="/path/to/placeholder-image.jpg" alt="No Image Available">
+                        <% } %>
+                    </div>
+                    <div class="product__details__slider__content">
+                        <div class="product__details__pic__slider owl-carousel">
+                            <% if (product.screenshots && product.screenshots.length > 0) { %>
+                                <% product.screenshots.forEach((screenshot, index) => { %>
+                                    <img data-hash="product-<%= index + 1 %>" class="product__big__img" src="/uploads/products/<%= screenshot %>" alt="">
+                                <% }); %>
+                            <% } else { %>
+                                <!-- Display a placeholder image or message when no images are available -->
+                                <img data-hash="product-1" class="product__big__img" src="/path/to/placeholder-image.jpg" alt="No Image Available">
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            
+            
+            <div class="col-lg-6">
+                <div class="product__details__text">
+                    <h3><%= product.name %></h3>
+                    <div class="rating">
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                        <span>( 138 reviews )</span>
+                    </div>
+                    <div class="product__details__price">₹ <%= product.price %></div>
+                    <p>Nemo enim ipsam voluptatem quia aspernatur aut odit aut loret fugit, sed quia consequuntur
+                        magni lores eos qui ratione voluptatem sequi nesciunt.</p>
+                    <div class="product__details__button">
+                         <% if(product.quantity==0) {%>
+                            <a href="#" class="cart-btn" style="background-color: black;"><span class="icon_bag_alt"></span> Out of stock</a>
+                            <% }else{ %>
+                                <a href="/addToCart?productId=<%= product._id %>" class="cart-btn"><span class="icon_bag_alt"></span> Add to cart</a>
+                            <% } %>
+                        <ul>
+                            <li><a href="#"><span class="icon_heart_alt"></span></a></li>
+                            <li><a href="#"><span class="icon_adjust-horiz"></span></a></li>
+                        </ul>
+                    </div>
+                    <div class="product__details__widget">
+                        <ul>
+                            <li>
+                                <span>Available size:</span>
+                                <div class="size__btn">
+                                    
+                                    <label for="s-btn">
+                                        <input type="radio" id="s-btn">
+                                        s
+                                    </label>
+                                    <label for="m-btn">
+                                        <input type="radio" id="m-btn">
+                                        m
+                                    </label>
+                                    <label for="l-btn">
+                                        <input type="radio" id="l-btn">
+                                        l
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <span>Promotions:</span>
+                                <p>Free shipping</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-12">
+                <div class="product__details__tab">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-toggle="tab" href="#tabs-1" role="tab">Description</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#tabs-2" role="tab">Specification</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#tabs-3" role="tab">Reviews ( 2 )</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="tabs-1" role="tabpanel">
+                            <h6>Description</h6>
+                            <%= product.description %>
+                        </div>
+                        <div class="tab-pane" id="tabs-2" role="tabpanel">
+                            <h6>Specification</h6>
+                            <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut loret fugit, sed
+                                quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt loret.
+                                Neque porro lorem quisquam est, qui dolorem ipsum quia dolor si. Nemo enim ipsam
+                                voluptatem quia voluptas sit aspernatur aut odit aut loret fugit, sed quia ipsu
+                                consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Nulla
+                                consequat massa quis enim.</p>
+                            <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget
+                                dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes,
+                                nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium
+                                quis, sem.</p>
+                        </div>
+                        <div class="tab-pane" id="tabs-3" role="tabpanel">
+                            <h6>Reviews ( 2 )</h6>
+                            <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut loret fugit, sed
+                                quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt loret.
+                                Neque porro lorem quisquam est, qui dolorem ipsum quia dolor si. Nemo enim ipsam
+                                voluptatem quia voluptas sit aspernatur aut odit aut loret fugit, sed quia ipsu
+                                consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Nulla
+                                consequat massa quis enim.</p>
+                            <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget
+                                dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes,
+                                nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium
+                                quis, sem.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <div class="related__title">
+                    <h5>RELATED PRODUCTS</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<%-include('../layouts/footer')  %>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-zoom/1.7.21/jquery.zoom.min.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    console.log("Document loaded"); // Check if the DOMContentLoaded event is triggered
+
+    const thumbnailImages = document.querySelectorAll('.product__details__pic__left img.pt');
+    const mainImage = document.querySelector('.product__big__img');
+
+    thumbnailImages.forEach(function(thumbnail) {
+        thumbnail.addEventListener('click', function() {
+            console.log("Thumbnail clicked"); // Check if clicking on thumbnails triggers the event
+
+            thumbnailImages.forEach(function(img) {
+                img.classList.remove('active');
+            });
+
+            thumbnail.classList.add('active');
+
+            console.log("Main image source:", thumbnail.src); // Check if the main image source is being updated correctly
+            mainImage.src = thumbnail.src;
+
+            $('.zoomImg').attr('src', thumbnail.src);
+
+            console.log("Zoom image source updated");
+
+            $('.product__big__img').trigger('zoom.destroy').zoom({
+                on: 'mouseover',
+                magnify: 1.5
+            });
+
+            console.log("Zoom initialized");
+        });
+    });
+
+    $('.product__big__img').zoom({
+        on: 'mouseover',
+        zoomWidth: 400,
+        tint: "#333",
+        Xoffset: 15
+    });
+
+    console.log("Zoom initialized for main image");
+});
+
+</script>
