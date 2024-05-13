@@ -73,7 +73,7 @@
                     <div class="product__details__price">₹ <%= product.price %></div>
                     <p>Nemo enim ipsam voluptatem quia aspernatur aut odit aut loret fugit, sed quia consequuntur
                         magni lores eos qui ratione voluptatem sequi nesciunt.</p>
-                    <div class="product__details__button">
+                    <div class= "product__details__button">
                          <% if(product.quantity==0) {%>
                             <a href="#" class="cart-btn" style="background-color: black;"><span class="icon_bag_alt"></span> Out of stock</a>
                             <% }else{ %>
@@ -172,12 +172,10 @@
 
 <%-include('../layouts/footer')  %>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-zoom/1.7.21/jquery.zoom.min.js"></script>
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    console.log("Document loaded"); // Check if the DOMContentLoaded event is triggered
+    console.log("Document loaded"); 
 
     const thumbnailImages = document.querySelectorAll('.product__details__pic__left img.pt');
     const mainImage = document.querySelector('.product__big__img');

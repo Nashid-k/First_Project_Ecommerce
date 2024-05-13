@@ -2,10 +2,10 @@
 <%- include('../layouts/sidebar') %>
 
 <div class="content">
-  <div class="container mt-5" >
+  <div class="container mt-5">
     <nav aria-label="breadcrumb">
-      <ol class="breadcrumb" style="background-color: white;">
-        <li class="breadcrumb-item"><a href="/" >Home</a></li>
+      <ol class="breadcrumb bg-white">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
         <li class="breadcrumb-item active" aria-current="page">Profile</li>
       </ol>
     </nav>
@@ -13,9 +13,9 @@
       <div class="col-md-9">
         <h2>User Profile</h2>
         <ul class="list-group list-group-flush">
-          <li class="list-group-item" style="padding: 10px; margin-bottom: 10px; font-weight: bold;">Name: <%= userData.name %></li>
-          <li class="list-group-item" style="padding: 10px; margin-bottom: 10px; font-weight: bold;">Email: <%= userData.email %></li>
-          <li class="list-group-item" style="padding: 10px; margin-bottom: 10px; font-weight: bold;">Mobile: <%= userData.mobile %></li>
+          <li class="list-group-item font-weight-bold">Name: <%= userData.name %></li>
+          <li class="list-group-item font-weight-bold">Email: <%= userData.email %></li>
+          <li class="list-group-item font-weight-bold">Mobile: <%= userData.mobile %></li>
         </ul>
         <div class="d-flex justify-content-between mt-3">
           <a href="/address" class="btn btn-danger">Manage Address</a>

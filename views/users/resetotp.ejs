@@ -1,0 +1,144 @@
+<%-include('../layouts/header')  %>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<style>
+
+    .form-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .form-control:focus {
+        border-color: #CA1515 !important;
+        box-shadow: none !important;
+    }
+
+    .btn-primary:hover {
+        background-color: #CA1515 !important;
+        border-color: #CA1515 !important;
+    }
+
+    .forgot-password a:hover,
+    .social-icons a:hover,
+    .create-account a:hover {
+        color: #CA1515;
+    }
+
+    .card {
+        width: 350px; /* Adjust the width of the card */
+        border-radius: 10px; /* Add border radius */
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); /* Add 3D effect */
+        position: relative; /* Add position relative for the glow effect */
+        transition: all 0.3s ease-in-out; /* Add a smooth transition */
+    }
+
+    .card:hover::before {
+        content: "";
+        position: absolute;
+        top: -5px;
+        left: -5px;
+        right: -5px;
+        bottom: -5px;
+        border-radius: 15px;
+        background: linear-gradient(45deg, #CA1515, #FF4D4D, #CA1515);
+        z-index: -1;
+        filter: blur(10px);
+        opacity: 0.8;
+    }
+
+    /* Adjust the size of the OTP input fields */
+    .otp-input {
+        width: 70px;
+        text-align: center;
+        margin: 0 5px;
+        font-size: 1.5rem;
+    }
+
+    /* Error message style */
+    .error {
+        color: #CA1515;
+        font-size: 0.8rem;
+        margin-top: 4px;
+    }
+
+    /* Resend OTP link style */
+    .resend-otp {
+        text-decoration: none;
+        color: #CA1515;
+        font-size: 0.8rem;
+    }
+</style>
+</head>
+<body>
+    
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-6 form-container">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="text-center">Verify Your Email</h3>
+                    </div>
+                    <div class="card-body">
+                        <% if (messages.success) { %>
+                            <div class="alert alert-success" role="alert" style="color: green;">
+                                <%= messages.success %>
+                            </div>
+                            <% } %>
+    
+                            <% if (messages.error) { %>
+                            <div class="alert alert-danger" role="alert" style="color: red;">
+                                <%= messages.error %>
+                            </div>
+                            <% } %>
+                        <p class="text-center">An OTP has been sent to your email. Please enter the OTP to reset your password.</p>
+                        <form id="otp-form" method="post" action="/verifyResetOtp">
+
+                            <div class="form-group d-flex justify-content-center">
+                                <input type="hidden" id="otpInput" name="otp" value="">
+                                <input type="text" class="form-control otp-input" id="otp1" maxlength="1" required>
+                                <input type="text" class="form-control otp-input" id="otp2" maxlength="1" required>
+                                <input type="text" class="form-control otp-input" id="otp3" maxlength="1" required>
+                                <input type="text" class="form-control otp-input" id="otp4" maxlength="1" required>
+                            </div>
+                            <div class="error text-center" id="otp-error"></div>
+                            <button type="submit" class="btn btn-primary btn-block">Verify OTP</button>
+                            <p class="text-center">  <a href="/forgotPassword">Go Back</a></p>
+                        </form>
+                        
+                 
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+   
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.getElementById('otp-form').addEventListener('submit', function(event) {
+            var otp1 = document.getElementById('otp1').value.trim();
+            var otp2 = document.getElementById('otp2').value.trim();
+            var otp3 = document.getElementById('otp3').value.trim();
+            var otp4 = document.getElementById('otp4').value.trim();
+    
+            
+            var otpValue = otp1 + otp2 + otp3 + otp4;
+    
+         
+            if (otp1 === '' || otp2 === '' || otp3 === '' || otp4 === '') {
+                event.preventDefault();
+                document.getElementById('otp-error').innerText = 'Please enter the complete OTP.';
+            } else {
+                
+                document.getElementById('otp-error').innerText = '';
+               
+                document.getElementById('otpInput').value = otpValue;
+            }
+        });
+    
+    </script>
+    
+    
+<%-include('../layouts/footer')  %>

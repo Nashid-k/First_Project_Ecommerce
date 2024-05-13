@@ -1,152 +1,174 @@
-<%- include('../layouts/header')  %>
-    <!-- Breadcrumb Begin -->
-    <div class="breadcrumb-option">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="breadcrumb__links">
-                        <a href="./index.html"><i class="fa fa-home"></i> Home</a>
-                        <span>Shopping cart</span>
-                    </div>
-                </div>
-            </div>
+<%- include('../layouts/header') %>
+
+<style>
+    .checkout__address__details {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #f5f5f5;
+}
+</style>
+<!-- Breadcrumb Begin -->
+<div class="breadcrumb-option">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="breadcrumb__links">
+            <a href="/"><i class="fa fa-home"></i> Home</a>
+            <a href="/cart">Shopping cart</a>
+            <span>Checkout</span>
+          </div>
         </div>
+      </div>
     </div>
-    <!-- Breadcrumb End -->
-
-
-
-
-
-    
-    <!-- Checkout Section Begin -->
-    <section class="checkout spad">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <h6 class="coupon__link"><span class="icon_tag_alt"></span> <a href="#">Have a coupon?</a> Click
-                    here to enter your code.</h6>
+  </div>
+  <!-- Breadcrumb End -->
+  
+  <!-- Checkout Section Begin -->
+  <section class="checkout spad">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12">
+          <h6 class="coupon__link"><span class="icon_tag_alt"></span> <a href="#">Have a coupon?</a> Click here to enter your code.</h6>
+        </div>
+      </div>
+      <form action="/placeOrder" class="checkout__form" method="post">
+        <div class="row">
+          <div class="col-lg-8">
+            <h5>Address</h5>
+            <div class="checkout__address">
+              <% if (messages.success) { %>
+                <div class="alert alert-success" role="alert" style="color: green;">
+                    <%= messages.success %>
                 </div>
-            </div>
-            <form action="#" class="checkout__form">
-                <div class="row">
-                    <div class="col-lg-8">
-                        <h5>Billing detail</h5>
-                        <div class="row">
-                            <div class="col-lg-6 col-md-6 col-sm-6">
-                                <div class="checkout__form__input">
-                                    <p>First Name <span>*</span></p>
-                                    <input type="text">
-                                </div>
-                            </div>
-                            <div class="col-lg-6 col-md-6 col-sm-6">
-                                <div class="checkout__form__input">
-                                    <p>Last Name <span>*</span></p>
-                                    <input type="text">
-                                </div>
-                            </div>
-                            <div class="col-lg-12">
-                                <div class="checkout__form__input">
-                                    <p>Country <span>*</span></p>
-                                    <input type="text">
-                                </div>
-                                <div class="checkout__form__input">
-                                    <p>Address <span>*</span></p>
-                                    <input type="text" placeholder="Street Address">
-                                    <input type="text" placeholder="Apartment. suite, unite ect ( optinal )">
-                                </div>
-                                <div class="checkout__form__input">
-                                    <p>Town/City <span>*</span></p>
-                                    <input type="text">
-                                </div>
-                                <div class="checkout__form__input">
-                                    <p>Country/State <span>*</span></p>
-                                    <input type="text">
-                                </div>
-                                <div class="checkout__form__input">
-                                    <p>Postcode/Zip <span>*</span></p>
-                                    <input type="text">
-                                </div>
-                            </div>
-                            <div class="col-lg-6 col-md-6 col-sm-6">
-                                <div class="checkout__form__input">
-                                    <p>Phone <span>*</span></p>
-                                    <input type="text">
-                                </div>
-                            </div>
-                            <div class="col-lg-6 col-md-6 col-sm-6">
-                                <div class="checkout__form__input">
-                                    <p>Email <span>*</span></p>
-                                    <input type="text">
-                                </div>
-                            </div>
-                            <div class="col-lg-12">
-                                <div class="checkout__form__checkbox">
-                                    <label for="acc">
-                                        Create an acount?
-                                        <input type="checkbox" id="acc">
-                                        <span class="checkmark"></span>
-                                    </label>
-                                    <p>Create am acount by entering the information below. If you are a returing
-                                        customer login at the <br />top of the page</p>
-                                    </div>
-                                    <div class="checkout__form__input">
-                                        <p>Account Password <span>*</span></p>
-                                        <input type="text">
-                                    </div>
-                                    <div class="checkout__form__checkbox">
-                                        <label for="note">
-                                            Note about your order, e.g, special noe for delivery
-                                            <input type="checkbox" id="note">
-                                            <span class="checkmark"></span>
-                                        </label>
-                                    </div>
-                                    <div class="checkout__form__input">
-                                        <p>Oder notes <span>*</span></p>
-                                        <input type="text"
-                                        placeholder="Note about your order, e.g, special noe for delivery">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4">
-                            <div class="checkout__order">
-                                <h5>Your Order</h5>
-                                <div class="checkout__order__product">
-                                    <ul>
-                                        <% cartItems.forEach(cartItem => { %>
-                                            <li>
-                                                <div class="checkout__order__product__item">
-                                                    <div class="checkout__order__product__item__img">
-                                                        <img src="/uploads/products/<%= cartItem.product.mainImage %>" alt="<%= cartItem.product.name %>">
-                                                    </div>
-                                                    <div class="checkout__order__product__item__details">
-                                                        <div class="checkout__order__product__item__name"><%= cartItem.product.name %></div>
-                                                        <div class="checkout__order__product__item__price">$ <%= (cartItem.product.price * cartItem.quantity).toFixed(2) %></div>
-                                                        <div class="checkout__order__product__item__quantity">Quantity: <%= cartItem.quantity %></div>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                        <% }); %>
-                                        
-                                    </ul> 
-                                </div>
-                                <div class="checkout__order__total">
-                                    <ul>
-                                        <li>Subtotal <span>$ <%= subtotal.toFixed(2) %></span></li>
-                                        <li>Total <span>$ <%= total.toFixed(2) %></span></li>
-                                    </ul>
-                                </div>
-                                <button type="submit" class="site-btn">Place Order</button>
-                            </div>
-                            
-                        </div>
+                <% } %>
+
+                <% if (messages.error) { %>
+                <div class="alert alert-danger" role="alert" style="color: red;">
+                    <%= messages.error %>
+                </div>
+                <% } %>
+              <% if (addressData.length > 0) { %>
+                <% addressData.forEach((address, index) => { %>
+                  <div class="checkout__address__details" id="address<%= address._id %>">
+                    <input type="radio" name="selectedAddress" value="<%= address._id %>" />
+                    <div class="address-option">
+                        <p><span style="font-weight: bold; color: #000;"><%= userData.name %></span> <span class="status-indicator-pill <%= address.addresstype === 'work'? 'badge badge-pill badge-secondary' : 'badge badge-pill badge-secondary' %>" style="margin-left: 10px; padding: 5px 10px;"><%= address.addresstype === 'work'? 'Work' : 'Home' %></span></p>
+                      <p class="mb-0"><%= userData.name %>,<%= userData.mobile %>,<%= address.address %>,<%= address.locality %>,<%= address.city %>,<%= address.pincode %>,</p>
                     </div>
-                </form>
+                  </div>
+                <% }); %>
+              <% } else { %>
+                <p>No addresses available. Please add an address.</p>
+              <% } %>
+              <button class="btn btn-primary" id="editAddressBtn" onclick="navigateToAddAddress()">Add Address</button>
             </div>
-        </section>
-        <!-- Checkout Section End -->
+          </div>
+          <div class="col-lg-4">
+            <div class="checkout__order">
+              <h5>Your Order</h5>
+              <div class="checkout__order__product">
+                <ul class="checkout__order__product__list">
+                  <% cartItems.forEach(cartItem => { %>
+                    <% cartItem.product.forEach(product => { %>
+                      <li class="checkout__order__product__item">
+                        <!-- <div class="checkout__order__product__item__img-frame">
+                          <img class="checkout__order__product__item__img" src="/uploads/products/<%= product.productId.mainImage %>" alt="<%= product.productId.name %>">
+                        </div> -->
+                        <div class="checkout__order__product__item__details">
+                          <div class="checkout__order__product__item__name">Name: <%= product.productId.name %></div>
+                          <div class="checkout__order__product__item__price">Price: ₹ <%= (product.price * product.quantity).toFixed(2) %></div>
+                          <div class="checkout__order__product__item__quantity">Quantity: <%= product.quantity %></div>
+                        </div>
+                      </li>
+                    <% }); %>
+                  <% }); %>
+                </ul>
+              </div>
+              <div class="checkout__order__total">
+                <ul>
+                  <li>Subtotal <span>₹ <%= subtotal.toFixed(2) %></span></li>
+                  <li>Total <span>₹ <%= total.toFixed(2) %></span></li>
+                </ul>
+              </div>
+              <!-- Payment Method -->
+              <div class="checkout__payment-method">
+                <h5>Payment Method</h5>
+<!-- Cash on Delivery -->
+<input type="radio" id="cashOnDelivery" name="paymentMethod" value="cashOnDelivery">
+<label for="cashOnDelivery">
+  <img width="34" height="34" src="https://img.icons8.com/external-flaticons-lineal-color-flat-icons/64/external-cash-on-delivery-web-store-flaticons-lineal-color-flat-icons.png" alt="external-cash-on-delivery-web-store-flaticons-lineal-color-flat-icons"/>
+  COD
+</label>
+<br>
+
+<!-- Wallet -->
+<input type="radio" id="wallet" name="paymentMethod" value="wallet">
+<label for="wallet">
+  <img width="34" height="34" src="https://img.icons8.com/3d-fluency/94/card-wallet.png" alt="card-wallet"/>
+  Wallet
+</label>
+<br>
+
+<!-- Razor Pay -->
+<!-- <input type="radio" id="razorPay" name="paymentMethod" value="razorPay">
+<label for="razorPay">
+ <img src="/" width="34" height="34" alt="">
+  Razor Pay
+</label> -->
+
+              </div>
+              <!-- End Payment Method -->
+              <button type="submit" class="site-btn">Place Order</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+  <!-- Checkout Section End -->
+  
+  <%- include('../layouts/footer') %>
+
+<%- include('../layouts/footer') %>
 
 
 
-        <%- include('../layouts/footer')  %>
+
+<script>
+
+
+
+  function navigateToAddAddress() {
+    event.preventDefault(); 
+    window.location.href = '/address/add'; 
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const addressDetails = document.querySelectorAll('.checkout__address__details');
+
+    addressDetails.forEach(function(addressDetail) {
+      addressDetail.addEventListener('click', function(event) {
+        event.preventDefault();
+        toggleActive(addressDetail);
+      });
+    });
+  });
+
+  function toggleActive(element) {
+    const addressDetails = document.querySelectorAll('.checkout__address__details');
+    addressDetails.forEach(function(addressDetail) {
+      addressDetail.classList.remove("active");
+      addressDetail.style.backgroundColor = "";
+      addressDetail.style.color = "";
+      addressDetail.querySelector('input[type=radio]').checked = false;
+    });
+
+    element.classList.add("active");
+    element.style.backgroundColor = "lightblue";
+    element.style.color = "black";
+    element.querySelector('input[type=radio]').checked = true;
+  }
+
+</script>

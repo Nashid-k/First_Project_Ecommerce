@@ -4,10 +4,10 @@ const profileController = require('../controllers/userProfileController')
 const userController = require('../controllers/userController')
 const cartController = require('../controllers/cartController')
 
-userRoute.set('view engine','ejs')
 userRoute.set('views','./views/users')
 
 const userAuth = require('../middlewares/userAuth')
+const passport = require('passport')
 
 /***************************************************** HOME,SHOP,PRODUCT_DETAILS,WOMEN ***************************************************************************************/
 
@@ -32,10 +32,27 @@ userRoute.post('/login',userController.verifyLogin)
 userRoute.get('/logout',userAuth.is_login,userController.logout)
 userRoute.get('/forgotPassword',userController.renderForgotPassword)
 userRoute.post('/findAccount',userController.findAccount)
+userRoute.post('/verifyAccount',userController.sendOtp)
+userRoute.get('/resetotp',userController.loadResetotp)
+userRoute.post('/verifyResetOtp',userController.verifyResetOtp)
+userRoute.get('/changePassword',userController.renderChangePassword)
+userRoute.post('/resetPassword',userController.changePassword)
 
 
 
+// Google OAuth Routes
+userRoute.get('/auth', passport.authenticate('google', { scope: ['email', 'profile'] }));
+userRoute.get("/home",(req,res)=> {
+    if (req.user) {
+      req.session.userId = req.user
+        res.render("home", { userData: req.user });
+      } else {
+        res.redirect("/login");
+      }
+  })
+  
 
+  userRoute.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: "/login",successRedirect:"/home"}))
 /***************************************************** OTP ***************************************************************************************/
 
 userRoute.get('/otp',userAuth.is_logout,userController.renderOtp)
@@ -69,11 +86,12 @@ userRoute.get('/addToCart',cartController.addToCart)
 userRoute.get('/checkout',cartController.loadCheckout)
 userRoute.post('/updateCartItem',cartController.updateCartItem)
 userRoute.post('/removeCartItem',cartController.removeCartItem)
+userRoute.post('/placeOrder',cartController.placeOrder)
 
 
 
 
-
-
+userRoute.get('/myOrders',userAuth.is_login,profileController.renderMyOrder)
+userRoute.get('/orderDetails/:productId',userAuth.is_login,profileController.renderOrderDetails)
 
 module.exports = userRoute

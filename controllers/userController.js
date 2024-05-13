@@ -10,6 +10,43 @@ function generateOTP() {
     return String(Math.floor(1000 + Math.random() * 9000));
 }
 
+const sendPassResetMail = async(name,email,otp)=>{
+    try{
+        const transporter = nodemailer.createTransport({
+            host: "smtp.gmail.com",
+            port: 587,
+            secure: false,
+            requireTLS: true,
+            auth: {
+                user: "nashifa4u@gmail.com",
+                pass: "kdvj hzej eijm oiry",
+            },
+        });
+        const mailOptions = {
+            from: "nashifa4u@gmail.com",
+            to: email,
+            subject: "Reset Password OTP",
+            html: `
+            <p>Dear ${name},</p>
+            <p>We received a request to reset the password for your Nashifa account.</p>
+            <p>To proceed with resetting your password, please use the following One-Time Password (OTP):</p>
+            <h2>OTP: ${otp}</h2>
+            <p>This OTP is valid for 1 minute only. If you didn't request this OTP, please ignore this email.</p>
+            <p>If you need any assistance, please don't hesitate to contact us at nashifa4u@gmail.com or call us at 8281142958.</p>
+            <p>Best regards,<br>Nashifa Team</p>
+            `,
+        };
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.log(error);
+            } else {
+                console.log(`Generated otp : ${otp}`);
+            }
+        });
+    }catch(error){
+        console.log(error.message);
+    }
+}
 
 const securePassword = async (password) => {
     try {
@@ -369,14 +406,6 @@ const renderShop = async (req, res) => {
     }
   };
   
-
-
-
-
-
-  
-
-
 const renderProductDetails = async (req, res) => {
     try {
         const productId = req.params.productId;
@@ -393,6 +422,7 @@ const renderProductDetails = async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 };
+
 const logout = async (req, res) => {
     try {
         req.session.destroy();
@@ -462,8 +492,6 @@ const renderWomen = async (req, res) => {
     }
   };
 
-
-
 const renderForgotPassword =async(req,res)=>{
     try{
 res.render('forgotPassword')
@@ -475,20 +503,135 @@ res.render('forgotPassword')
 const findAccount = async(req,res)=>{
     try{
         const {email} = req.body
+        req.session.resetMail = email
+     const existingUser = await User.findOne({email:email})
+     if(existingUser){
+        res.render('verifyAccount',{users:existingUser})
+     }else{
+        req.flash('error','User not found ')
+        res.redirect('/forgotPassword')
+     }
+    }catch(error){
+        console.log(error.message);
+    }
+}
+ 
+
+const sendOtp = async (req, res) => {
+    try {
+        const email = req.session.resetMail;
+        console.log('Email from session:', email);
+
+        const userData = await User.findOne({ email: email });
+        if (!userData) {
+            console.log('User not found for the provided email');
+         
+            return;
+        }
+
+        const name = userData.name;
+      
+
+        const otp = generateOTP();
+      
+
+        await sendPassResetMail(name, email, otp);
+       
+        const resetOtp = new Otp ({
+            user_id:userData._id,
+            otp
+        })
+        req.session.tempReset ={
+            userId:userData._id,
+            email:userData.email,
+            otp:otp
+        }
+        await resetOtp.save()
+        res.redirect('/resetotp')
+    } catch (error) {
+        console.log(error.message);
+    }
+};
+
+const loadResetotp = async(req,res)=>{
+    try{
+res.render('resetotp')
+    }catch(error){
+        console.log(error.message);
+    }
+}
+
+const verifyResetOtp = async(req,res)=>{
+    try{
+  const {otp} = req.body
+  const tempUser  = req.session.tempReset
+  const storedOtp = tempUser.otp
+  if(otp!==storedOtp){
+    console.log(`Invalid OTP: Entered OTP ${otp} does not match stored OTP ${storedOtp}`);
+    req.flash("error", "Invalid OTP");
+    return res.redirect("/resetotp");
+  }
+       const userId = tempUser.userId;
+
+
+        const user = await User.findById(userId);
+        if (!user) {
+            req.flash("error", "User not found");
+            return res.redirect("/resetotp");
+        }else{
+            res.redirect('/changePassword')
+        }
+    }catch(error){
+        console.log(error.message);
+    }
+}
+
+const changePassword = async(req,res)=>{
+    try{
+     const {newPassword,confirmPassword} = req.body
+     const tempUser = req.session.tempReset
+     const userId = tempUser.userId;
+     console.log(userId);
+
+     const user = await User.findById(userId);
+     if(!user){
+        req.flash('error', "An error occured while changing password")
+        res.redirect('/forgotPassword')
+     }
+        
+        if(newPassword!==confirmPassword){
+      
+            req.flash('error','Passwords do not match')
+            res.redirect('/changePassword')
+        }else{
+            const hashedPassword = await securePassword(confirmPassword);
+           const updatedPassword =  await User.findByIdAndUpdate(userId,{$set:{password: hashedPassword}},{new:true})
+            req.flash('success','password changed Successfully,Login to continue')
+            res.redirect('/login')
+        }
+     
 
     }catch(error){
         console.log(error.message);
     }
 }
 
+
+const renderChangePassword = async(req,res)=>{
+    try{
+res.render('changePassword')
+    }catch(error){
+        console.log('error.message');
+    }
+}
 module.exports = {
     renderHome,
     renderLogin,
     renderSignUp,
     insertUser,
     verifyOtp,
-    resendOtp,
     renderOtp,
+    resendOtp,
     verifyLogin,
     renderShop,
     sortProducts,
@@ -496,7 +639,12 @@ module.exports = {
     logout,
     renderWomen,
     renderForgotPassword,
-    findAccount
+    findAccount,
+    sendOtp,
+    verifyResetOtp,
+    loadResetotp,
+    renderChangePassword,
+    changePassword
    
    
 };

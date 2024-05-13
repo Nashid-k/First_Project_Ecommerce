@@ -3,7 +3,7 @@ const adminRoute = express()
 
 
 //multer
-const upload = require('../middlewares/multerConfig');
+const upload = require('../middlewares/categoryConfig');
 const productsUpload = require('../middlewares/productConfig');
 
 
@@ -15,7 +15,7 @@ const adminController = require('../controllers/adminController')
 
 
 
-adminRoute.set('view engine','ejs')
+
 adminRoute.set('views','./views/admin')
 
 /***************************************************** LOGIN & DASHBOARD ***************************************************************************************/
@@ -71,6 +71,10 @@ adminRoute.put('/updateProduct',adminController.updateProduct)
 
 
 
+
+adminRoute.get('/orders',adminAuth.is_login,adminController.renderOrders)
+adminRoute.post('/updateOrderStatus',adminAuth.is_login,adminController.updateOrderStatus)
+adminRoute.get('/orderDetails',adminAuth.is_login,adminController.orderDetails)
 
 
 

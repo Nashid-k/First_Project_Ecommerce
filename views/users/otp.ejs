@@ -116,37 +116,82 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     <!-- Custom JavaScript -->
     <script>
+
+        function startOTPTimer() {
+            var startTime = sessionStorage.getItem('otpTimerStart');
+            var currentTime = Math.floor(Date.now() / 1000);
+    
+  
+            if (!startTime || currentTime - startTime >= 60) {
+      
+                startTime = currentTime;
+                sessionStorage.setItem('otpTimerStart', startTime);
+                var remainingTime = 60; 
+            } else {
+
+                var elapsedTime = currentTime - startTime;
+                var remainingTime = 60 - elapsedTime;
+          
+                remainingTime = Math.max(remainingTime, 0);
+            }
+    
+            var timerElement = document.getElementById('otp-timer');
+            var resendLink = document.querySelector('.resend-otp');
+    
+           
+            if (!timerElement.dataset.timerRunning && !resendLink) {
+                timerElement.dataset.timerRunning = true; 
+                var timer = setInterval(function() {
+                    if (remainingTime > 0) {
+                       
+                        timerElement.innerText = 'Resend OTP in ' + remainingTime + ' seconds';
+                        remainingTime -= 1;
+                    } else {
+                        timerElement.dataset.timerRunning = false; 
+                            clearInterval(timer);
+                        timerElement.innerHTML = '<a href="/resendOtp" class="resend-otp">Resend OTP</a>';
+                      
+                
+                    }
+                }, 1000);
+            } else if (remainingTime <= 0 || resendLink) {
+                timerElement.innerHTML = '<a href="/resendOtp" class="resend-otp">Resend OTP</a>';
+            }
+        }
+    
+
+        window.onload = function() {
+            startOTPTimer();
+        };
+    
         document.getElementById('otp-form').addEventListener('submit', function(event) {
             var otp1 = document.getElementById('otp1').value.trim();
             var otp2 = document.getElementById('otp2').value.trim();
             var otp3 = document.getElementById('otp3').value.trim();
             var otp4 = document.getElementById('otp4').value.trim();
     
-            // Concatenate the OTP values
             var otpValue = otp1 + otp2 + otp3 + otp4;
-    
-            // Validation for empty fields
             if (otp1 === '' || otp2 === '' || otp3 === '' || otp4 === '') {
                 event.preventDefault();
                 document.getElementById('otp-error').innerText = 'Please enter the complete OTP.';
             } else {
-                // Reset error message
+          
                 document.getElementById('otp-error').innerText = '';
-                // Set the concatenated OTP value in a hidden input field
+   
                 document.getElementById('otpInput').value = otpValue;
             }
         });
     
-        // OTP Timer
-        var timeLeft = 60;
-        var timer = setInterval(function() {
-            document.getElementById('otp-timer').innerText = 'Resend OTP in ' + timeLeft + ' seconds';
-            timeLeft -= 1;
-            if (timeLeft < 0) {
-                clearInterval(timer);
-                document.getElementById('otp-timer').innerHTML = '<a href="/resendOtp" class="resend-otp">Resend OTP</a>';
-            }
-        }, 1000);
+        document.querySelectorAll('.otp-input').forEach(function(input, index, array) {
+            input.addEventListener('input', function() {
+                if (this.value.length >= this.getAttribute('maxlength')) {
+                    var nextIndex = index + 1;
+                    if (nextIndex < array.length) {
+                        array[nextIndex].focus();
+                    }
+                }
+            });
+        });
     </script>
     
     

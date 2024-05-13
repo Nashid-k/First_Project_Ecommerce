@@ -1,6 +1,10 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/userModel");
 const Address = require("../models/userAddress");
+const { findById } = require("../models/productModel");
+const Order = require('../models/orderModel')
+// const { ObjectId } = require('mongodb');
+const mongoose = require('mongoose');
 
 const renderProfile = async (req, res) => {
     try {
@@ -131,6 +135,7 @@ const insertNewAddress = async (req, res) => {
             city,
             state,
             addresstype,
+            state
         });
 
         const userAddress = await newAddress.save();
@@ -239,6 +244,73 @@ const deleteAddress = async (req, res) => {
     }
 };
 
+
+const renderMyOrder = async (req, res) => {
+    try {
+        if (req.session.userId) {
+            const userId = req.session.userId;
+            const user = await User.findById(userId);
+            const orderData = await Order.find({ userId }).populate("orderedItem.productId");        
+          
+            res.render('myorders', { orderData, userData: user });
+        } else {
+            res.redirect('/login');
+        }
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+// const renderOrderDetails = async (req, res) => {
+//     try {
+//         const userId = req.session.userId;
+      
+
+        
+//         const productId = req.query.productId;
+//         const productsId = new mongoose.Types.ObjectId(productId);
+      
+
+
+//         const orderData = await Order.aggregate([
+//           { $match:{userId:new mongoose.Types.ObjectId(userId)}},{$unwind:"$orderedItem"},{$match:{"orderedItem._id":productsId}}
+//         ])
+            
+// console.log(orderData);
+   
+//         res.render('orderdetails', { orderData });
+//     } catch (error) {
+//         console.log(error.message);
+//         res.status(500).json({ error: "Internal server error" });
+//     }
+// };
+
+
+const renderOrderDetails = async (req, res) => {
+    try {
+        
+        const userId = req.session.userId;
+        const userData = await User.findById(userId)
+        const productId = req.params.productId;
+
+        const orderData = await Order.findOne({
+            userId,
+            "orderedItem.productId": productId
+        })
+            .populate("orderedItem.productId")
+            .populate("deliveryAddress");
+
+        if (!orderData) {
+            return res.status(404).render('error', { message: 'Order not found' });
+        }
+
+        res.render('orderdetails', { orderData,userData });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).render('error', { message: 'Internal Server Error' });
+    }
+}
+
 module.exports = {
     renderProfile,
     renderEditProfile,
@@ -249,4 +321,9 @@ module.exports = {
     renderEditAddress,
     updateAddress,
     deleteAddress,
+
+
+
+    renderOrderDetails,
+    renderMyOrder
 };

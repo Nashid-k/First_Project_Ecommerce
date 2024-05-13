@@ -1,41 +1,70 @@
-const mongoose = require('mongoose')
-mongoose.connect('mongodb://127.0.0.1:27017/Nashifa_ecommerce')
+const dotenv = require('dotenv');
+const mongoose = require('mongoose');
+const express = require('express');
+const session = require('express-session');
+const flash = require('express-flash');
+const nocache = require('nocache');
+const passport = require('passport');
+require('./middlewares/passport');
 
+dotenv.config();
 
+mongoose.connect(process.env.mongo_url);
 
+const userRoute = require('./routes/userRoute');
+const adminRoute = require('./routes/adminRoute');
 
+const app = express();
+app.set('view engine','ejs')
 
-const express = require('express')
-const app = express()
+// Middlewares
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-
-
-const bodyParser = require('body-parser')
-const nocache=require('nocache')
-const session = require('express-session')
-const flash = require('express-flash')
+// Session Middleware
 app.use(session({
-    secret:'thisissecret',
-    resave:false,
-    saveUninitialized:true
-}))
+    secret: 'thisissecret',
+    resave: false,
+    saveUninitialized: true
+}));
 
-app.use(flash())
-app.use(express.json())
-app.use(express.urlencoded({extended:true}))
-app.use(bodyParser.json())
-app.use(nocache())
+app.use(flash());
+app.use(nocache());
 
-const path = require('path')
-// app.use(express.static('public'))
-app.use(express.static(__dirname+'/public'))
-app.use('/productImages',express.static('upload'))
-const userRoute = require('./routes/userRoute')
+// Initialize Passport.js
+app.use(passport.initialize());
+app.use(passport.session());
 
-const adminRoute = require('./routes/adminRoute')
-app.use('/',userRoute)
-app.use('/admin',adminRoute)
+// Static files
+app.use(express.static(__dirname + '/public'));
+app.use('/productImages', express.static('upload'));
 
-app.listen(3000,()=>{
-    console.log(`http://localhost:3000`);
-})
+// Routes
+app.use('/', userRoute);
+app.use('/admin', adminRoute);
+
+// Google OAuth Routes
+app.get('/auth', passport.authenticate('google', { scope: ['email', 'profile'] }));
+
+app.get('/auth/callback', passport.authenticate('google', {
+    successRedirect: '/auth/callback/success',
+    failureRedirect: '/auth/callback/failure'
+}));
+
+app.get('/auth/callback/success', (req, res) => {
+    if (req.user) {
+        res.redirect('/home'); 
+    } else {
+        res.redirect('/login'); 
+    }
+});
+
+app.get('/auth/callback/failure', (req, res) => {
+    res.send("Error");
+});
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`********************* CONNECTED TO DB **********************************`);
+    console.log(`Server is running on http://localhost:${port}`);
+});

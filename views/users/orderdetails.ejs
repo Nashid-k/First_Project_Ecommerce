@@ -1,0 +1,126 @@
+<%- include('../layouts/header') %>
+<%- include('../layouts/sidebar') %>
+<div class="content">
+  <div class="container mt-5">
+    <h2>Order Details</h2>
+    <% if (orderData) { %>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="delivery-details border rounded p-3 mb-3">
+            <h4>Delivery Address</h4>
+            <p><%= orderData.deliveryAddress.address %>, <%= orderData.deliveryAddress.locality %><br>
+               <%= orderData.deliveryAddress.city %>, <%= orderData.deliveryAddress.pincode %>, <%= orderData.deliveryAddress.state %></p>
+            <div class="more-actions mt-3">
+              <h4>More Actions</h4>
+              <a href="/downloadInvoice" class="btn btn-primary">
+                <i class="fa fa-download"></i> Download Invoice
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <% orderData.orderedItem.forEach(item => { %>
+          <div class="col-md-6">
+            <div class="order-item border rounded p-3 mb-3">
+              <div class="row">
+                <div class="col-md-4">
+                  <img src="/uploads/products/<%= item.productId.mainImage %>" alt="Product Image" class="img-fluid">
+                </div>
+                <div class="col-md-8">
+                  <h4><%= item.productId.name %></h4> 
+                  <p>Price: ₹ <%= item.productId.price %></p> 
+                  <p id="status_<%= orderData.orderId %>" class="badge status-label <%= orderData.orderStatus.toLowerCase() %>" style="color: white;"> <%= orderData.orderStatus %></p>
+
+                  <% if (orderData.orderStatus!== 'Cancelled') { %>
+                    <form action="/cancelOrder" method="POST">
+                      <input type="hidden" name="orderId" value="<%= orderData.orderId %>">
+                      <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#cancelOrderModal">
+                        <i class="fa fa-times"></i> Cancel Order
+                      </button>
+                    </form>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } else { %>
+      <p>No order details available.</p>
+    <% } %>
+    <div class="order-status-timeline mt-5">
+      <!-- Timeline code remains unchanged -->
+    </div>
+    <div class="return-option mt-5">
+      <!-- Return option code remains unchanged -->
+    </div>
+  </div>
+</div>
+<%- include('../layouts/footer') %>
+
+<!-- Include jQuery and Bootstrap's JavaScript -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- Modal Structure -->
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" role="dialog" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="cancelOrderModalLabel">Cancel Order</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Please select a reason for cancelling your order:</p>
+        <select class="form-control" id="cancelReason">
+          <option value="">Select Reason</option>
+          <option value="Customer Request">Customer Request</option>
+          <option value="Product Unavailable">Product Unavailable</option>
+          <option value="Change in Plans">Change in Plans</option>
+          <option value="Found a Better Deal">Found a Better Deal</option>
+          <option value="Delayed Shipping">Delayed Shipping</option>
+          <option value="Unsatisfactory Product">Unsatisfactory Product</option>
+          <option value="Other">Other</option>
+        </select>
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-danger" id="submitCancelOrder">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<style>
+  .status-label.pending {
+    background-color: #ffc107; /* Yellow */
+  }
+  .status-label.confirmed {
+    background-color: #0d6efd; /* Blue */
+  }
+  .status-label.shipped {
+    background-color: #198754; /* Green */
+  }
+  .status-label.delivered {
+    background-color: #198754; /* Green */
+  }
+  .status-label.cancelled {
+    background-color: #dc3545; /* Red */
+  }
+</style>
+
+<style>
+/* Additional CSS for responsiveness */
+@media (max-width: 768px) {
+  .col-md-4,
+  .col-md-8 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+</style>

@@ -1,0 +1,73 @@
+<%- include('../layouts/header') %>
+<%- include('../layouts/sidebar') %>
+
+<div class="content">
+  <div class="container mt-5">
+    <h2>Your Orders</h2>
+    <div class="row">
+      <div class="col-lg-9">
+        <% if (orderData && orderData.length > 0) { %>
+          <% orderData.forEach(order => { %>
+            <% order.orderedItem.forEach(item => { %>
+              <a href="/orderDetails/<%= item.productId._id %>" style="text-decoration: none;">
+                <div class="order-item border rounded p-3 mb-3">
+                  <div class="row">
+                    <div class="col-md-3">
+                      <img src="<%= '/uploads/products/' + item.productId.mainImage %>" alt="<%= item.productId.name %>" class="img-fluid">
+                    </div>
+                    <div class="col-md-9">
+                      <h4><%= item.productId.name %></h4>
+                      <p>Price: ₹ <%= item.totalProductAmount %></p>
+                      <p> <span class="badge status-label <%= order.orderStatus.toLowerCase() %>" style="color: white;"><%= order.orderStatus %></span></p>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            <% }); %>
+          <% }); %>
+        <% } else { %>
+          <li class="list-group-item" style="color: #000; padding: 20px;">No orders yet.</li>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../layouts/footer') %>
+
+<style>
+  .status-label.pending {
+    background-color: #ffc107; /* Yellow */
+  }
+  .status-label.confirmed {
+    background-color: #0d6efd; /* Blue */
+  }
+  .status-label.shipped,
+  .status-label.delivered {
+    background-color: #198754; /* Green */
+  }
+  .status-label.cancelled {
+    background-color: #dc3545; /* Red */
+  }
+</style>
+
+<style>
+/* Additional CSS for responsiveness */
+@media (max-width: 992px) {
+  .col-md-3 {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+  .col-md-9 {
+    flex: 0 0 75%;
+    max-width: 75%;
+  }
+}
+
+@media (max-width: 768px) {
+  .col-md-3, .col-md-9 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+</style>

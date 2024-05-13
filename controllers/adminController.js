@@ -4,6 +4,7 @@ const Category = require("../models/categoryModel");
 const Products = require("../models/productModel");
 const moment = require('moment');
 const productsUpload = require("../middlewares/productConfig");
+const Order=require('../models/orderModel')
 
 
 
@@ -435,8 +436,55 @@ const updateProduct = async (req, res) => {
 };
 
 
-  
+  const renderOrders = async(req,res)=>{
+    try{
+  const orderData = await Order.find().populate("orderedItem.productId").populate('userId')
 
+    res.render('order',{orderData})
+    }catch(error){
+        console.log(error.message);
+    }
+  }
+
+
+
+  const updateOrderStatus = async (req, res) => {
+    
+    const { orderId, orderStatus } = req.body;
+ 
+    console.log(`order id ${orderId} is ${orderStatus}`);
+    try {
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+        
+        order.orderStatus = orderStatus;
+        await order.save();
+        res.status(200).json({ message: 'Order status updated successfully'});
+        // res.redirect('/admin/orderDetails');
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+
+
+  const orderDetails = async (req, res) => {
+    try {
+      const orderId = req.query.orderId;
+      const order = await Order.findById(orderId).populate("orderedItem.productId").populate('userId');
+      if (!order) {
+        return res.status(404).send("Order not found");
+      }
+      res.render('orderDetails', { order });
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).send("Internal Server Error");
+    }
+  }
+  
 module.exports = {
     renderLogin,
     verifyLogin,
@@ -458,7 +506,16 @@ module.exports = {
     listProduct,
     unlistProduct,
     renderEditProduct,
-    updateProduct
+    updateProduct,
+
+
+    orderDetails,
   
+
+
+
+    renderOrders,
+    updateOrderStatus,
+
 
 };

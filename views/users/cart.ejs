@@ -102,7 +102,7 @@
                         <li>Subtotal <span id="subtotal">₹ <%= cartItems.reduce((acc, item) => acc + (item.product[0].price * item.product[0].quantity), 0).toFixed(2) %></span></li>
                         <li>Total <span id="total">₹ <%= cartItems.reduce((acc, item) => acc + (item.product[0].price * item.product[0].quantity), 0).toFixed(2) %></span></li>
                     </ul>
-                    <a href="/checkout" >Proceed to checkout</a>
+                    <button class="site-btn" onclick="window.location = '/checkout'">  Proceed to checkout   </button>
                 </div>
             </div>
         </div>
