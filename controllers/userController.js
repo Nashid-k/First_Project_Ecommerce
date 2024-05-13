@@ -18,8 +18,8 @@ const sendPassResetMail = async(name,email,otp)=>{
             secure: false,
             requireTLS: true,
             auth: {
-                user: "nashifa4u@gmail.com",
-                pass: "kdvj hzej eijm oiry",
+                user: "",
+                pass: "",
             },
         });
         const mailOptions = {
@@ -65,8 +65,8 @@ const sendVerifyMail = async (name, email, user_id, otp) => {
             secure: false,
             requireTLS: true,
             auth: {
-                user: "nashifa4u@gmail.com",
-                pass: "kdvj hzej eijm oiry",
+                user: "",
+                pass: "",
             },
         });
 
