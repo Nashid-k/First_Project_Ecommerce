@@ -21,6 +21,10 @@ const orderSchema= new mongoose.Schema({
             type:Number,
             required:true
         },
+        priceAtPurchase:{
+            type:Number,
+            required:true
+        },
         totalProductAmount:{
             type:Number,
             required:true
@@ -62,9 +66,13 @@ const orderSchema= new mongoose.Schema({
     paymentStatus:{
         type:Boolean,
         default:false
+    },
+    reasonForCancel:{
+        type:String,
     }
     
 },
+
 
 {
     timestamps:true

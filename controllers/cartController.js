@@ -32,14 +32,13 @@ const addToCart = async (req, res) => {
         }
 
         await cartItem.save();
-        await Products.updateOne({ _id: productId }, { $inc: { quantity: -1 } });
-
         res.redirect("/cart");
     } catch (error) {
         console.log(error.message);
         res.status(500).send("Internal Server Error");
     }
 };
+
 
 const renderCart = async (req, res) => {
     try {
@@ -64,7 +63,6 @@ const updateCartItem = async (req, res) => {
         const userId = req.session.userId;
         const { productId, quantityChange } = req.body;
         const cartItems = await CartItem.find({ userId }).populate("product.productId");
-     
 
         if (!cartItems || cartItems.length === 0) {
             return res.status(404).json({ message: "No cart items found for the user" });
@@ -82,8 +80,12 @@ const updateCartItem = async (req, res) => {
         if (newQuantity < 1) {
             return res.status(400).json({ message: "Quantity cannot be less than 1" });
         }
-        const quantityDifference = parseInt(quantityChange);
-        await Products.updateOne({ _id: product.productId }, { $inc: { quantity: -quantityDifference } });
+
+        // Check if the updated quantity exceeds available stock
+        const currentProduct = await Products.findById(product.productId);
+        if (newQuantity > currentProduct.quantity) {
+            return res.status(400).json({ message: "Not enough stock available" });
+        }
 
         const newPrice = product.price * newQuantity;
 
@@ -97,7 +99,7 @@ const updateCartItem = async (req, res) => {
         );
 
         const updatedCartItems = await CartItem.find({ userId }).populate("product.productId");
-        
+
         res.status(200).json({
             message: "Cart items updated successfully",
             cartItems: updatedCartItems,
@@ -107,6 +109,10 @@ const updateCartItem = async (req, res) => {
         res.status(500).send("Internal Server Error");
     }
 };
+
+
+
+
 
 const removeCartItem = async (req, res) => {
     try {
@@ -189,32 +195,41 @@ const placeOrder = async (req, res) => {
         }
 
         let orderAmount = 0;
-        cartItems.forEach((item) => {
-            item.product.forEach((product) => {
-                orderAmount += product.totalPrice;
-            });
-        });
-
         const orderedItems = cartItems.flatMap((item) =>
-            item.product.map((product) => ({
-                productId: product.productId,
-                quantity: product.quantity,
-                totalProductAmount: product.totalPrice,
-            }))
-        );
+            item.product.map((product) => {
+                const priceAtPurchase = product.price; 
+                const totalProductAmount = priceAtPurchase * product.quantity; 
 
+                orderAmount += totalProductAmount;
+
+                return {
+                    productId: product.productId,
+                    quantity: product.quantity,
+                    totalProductAmount: totalProductAmount,
+                    priceAtPurchase: priceAtPurchase 
+                };
+            })
+        );
+        const pricesAtPurchase = orderedItems.map(item => item.priceAtPurchase);
         const orderData = new Order({
             cartId: cartId,
             userId: userId,
             orderedItem: orderedItems,
-            orderAmount: orderAmount,
+            orderAmount: orderAmount, 
             deliveryAddress: selectedAddress,
             paymentMethod: paymentMethod,
             paymentStatus: true,
             orderDate: Date.now(),
+            priceAtPurchase:pricesAtPurchase
         });
 
         await orderData.save();
+
+
+        for (const item of orderedItems) {
+            await Products.updateOne({ _id: item.productId }, { $inc: { quantity: -item.quantity } });
+        }
+
         await CartItem.deleteMany({ userId });
 
         res.render("orderplaced", { orderId: orderData._id });
@@ -224,6 +239,8 @@ const placeOrder = async (req, res) => {
         res.redirect("/checkout");
     }
 };
+
+
 const addNewAddress = async(req,res)=>{
 try{
     const userId = req.session.userId

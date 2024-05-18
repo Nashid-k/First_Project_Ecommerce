@@ -36,16 +36,16 @@
                 </div>
                 <div class="col-md-8">
                   <h4><%= item.productId.name %></h4> 
-                  <p>Price: ₹ <%= item.productId.price %></p> 
-                  <p id="status_<%= orderData.orderId %>" class="badge status-label <%= orderData.orderStatus.toLowerCase() %>" style="color: white;"> <%= orderData.orderStatus %></p>
+                  <p>Price: ₹ <%= item.priceAtPurchase %></p>
+                  <p>Quantity: <%= item.quantity %></p>
+                  <p>Total Price: ₹ <%= item.priceAtPurchase * item.quantity %></p>
+                  <p>Status: <span class="badge status-label <%= orderData.orderStatus %>"><%=orderData.orderStatus %></span></p>
 
-                  <% if (orderData.orderStatus!== 'Cancelled') { %>
-                    <form action="/cancelOrder" method="POST">
-                      <input type="hidden" name="orderId" value="<%= orderData.orderId %>">
-                      <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#cancelOrderModal">
-                        <i class="fa fa-times"></i> Cancel Order
-                      </button>
-                    </form>
+                  <% if (orderData.orderStatus !== 'Cancelled') { %>
+                    <!-- Button trigger modal -->
+                    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#cancelOrderModal">
+                      <i class="fa fa-times"></i> Cancel Order
+                    </button>
                   <% } %>
                 </div>
               </div>
@@ -64,13 +64,8 @@
     </div>
   </div>
 </div>
-<%- include('../layouts/footer') %>
 
-<!-- Include jQuery and Bootstrap's JavaScript -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-<!-- Modal Structure -->
+<!-- Modal -->
 <div class="modal fade" id="cancelOrderModal" tabindex="-1" role="dialog" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -81,53 +76,139 @@
         </button>
       </div>
       <div class="modal-body">
-        <p>Please select a reason for cancelling your order:</p>
-        <select class="form-control" id="cancelReason">
-          <option value="">Select Reason</option>
-          <option value="Customer Request">Customer Request</option>
-          <option value="Product Unavailable">Product Unavailable</option>
-          <option value="Change in Plans">Change in Plans</option>
-          <option value="Found a Better Deal">Found a Better Deal</option>
-          <option value="Delayed Shipping">Delayed Shipping</option>
-          <option value="Unsatisfactory Product">Unsatisfactory Product</option>
-          <option value="Other">Other</option>
-        </select>
-        
+        <form id="cancelOrderForm" action="/cancelOrder" method="POST">
+          <input type="hidden" name="orderId" value="<%= orderData._id %>">
+          <div class="form-group">
+            <label for="cancelReason">Select a reason for canceling the order:</label>
+            <select class="form-control" id="cancelReason" name="cancelReason">
+              <option value="Out of stock">Out of stock</option>
+              <option value="Changed mind">Changed mind</option>
+              <option value="Delayed delivery">Delayed delivery</option>
+              <!-- Add more reasons as needed -->
+            </select>
+          </div>
+        </form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-danger" id="submitCancelOrder">Submit</button>
+        <button type="submit" form="cancelOrderForm" class="btn btn-danger">Confirm Cancel</button>
       </div>
     </div>
   </div>
 </div>
 
+<%- include('../layouts/footer') %>
 
+
+<!-- jQuery and Bootstrap scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- Your custom script -->
+<!-- <script>
+  $(document).ready(function() {
+  $('#cancelOrderForm').submit(function(event) {
+    event.preventDefault(); // Prevent the default form submission
+
+    // Serialize the form data
+    const formData = $(this).serialize();
+
+    // Send a POST request to cancel the order
+    $.post('/cancelOrder', formData)
+      .done(function(response) {
+        // If the cancellation is successful
+        location.reload();
+      })
+      .fail(function(error) {
+        // Handle errors
+        console.error('Error cancelling order:', error);
+        alert('An error occurred while cancelling the order. Please try again later.');
+      });
+  });
+
+  // Check order status and hide cancel button if delivered
+  if ($('.status-label').text().trim() === 'Delivered') {
+    $('.btn-danger').hide();
+  }
+});
+
+</script> -->
+
+
+<script>
+  $(document).ready(function() {
+  $('#cancelOrderForm').submit(function(event) {
+    event.preventDefault(); // Prevent the default form submission
+
+    // Serialize the form data
+    const formData = $(this).serialize();
+
+    // Send a POST request to cancel the order
+    $.post('/cancelOrder', formData)
+      .done(function(response) {
+        // If the cancellation is successful
+        location.reload();
+      })
+      .fail(function(error) {
+        // Handle errors
+        console.error('Error cancelling order:', error);
+        alert('An error occurred while cancelling the order. Please try again later.');
+      });
+  });
+
+  // Check order status and hide cancel button if delivered
+  var orderStatus = $('.status-label').text().trim();
+  if (orderStatus === 'Delivered') {
+    $('.btn-danger').hide();
+  }
+});
+
+</script>
+<!-- Your custom styles -->
 <style>
+  /* Status labels */
+  .status-label {
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+  }
+
+  /* Status label colors */
   .status-label.pending {
     background-color: #ffc107; /* Yellow */
+    color: #333; /* Dark text color for contrast */
   }
+
   .status-label.confirmed {
     background-color: #0d6efd; /* Blue */
+    color: #fff; /* White text color */
   }
-  .status-label.shipped {
-    background-color: #198754; /* Green */
-  }
+
+  .status-label.shipped,
   .status-label.delivered {
     background-color: #198754; /* Green */
+    color: #fff; /* White text color */
   }
+
   .status-label.cancelled {
     background-color: #dc3545; /* Red */
+    color: #fff; /* White text color */
   }
+
+  /* Modal styles */
+  .modal-body label {
+    font-weight: bold;
+  }
+
+  .modal-footer button {
+    font-weight: bold;
+  }
+
+  /* Custom buttons */
+  .btn-custom {
+    font-weight: bold;
+  }
+
+  /* Additional styles as needed */
 </style>
 
-<style>
-/* Additional CSS for responsiveness */
-@media (max-width: 768px) {
-  .col-md-4,
-  .col-md-8 {
-    flex: 0 0 100%;
-    max-width: 100%;
-  }
-}
-</style>

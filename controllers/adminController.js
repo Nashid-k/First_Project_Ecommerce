@@ -345,34 +345,6 @@ const unlistProduct = async (req, res) => {
 };
 
  
-// const renderEditProduct = async (req, res) => {
-//     try {
-//       const productId = req.query.id;
-//       const productData = await Products.findById(productId).populate('category');
-  
-//       if (productData) {
-       
-//         if (productData.mainImageFile) {
-//           const imagePath = path.join(__dirname, 'uploads', productData.mainImageFile);
-//           const imageData = fs.readFileSync(imagePath);
-//           productData.mainImage = `data:image/jpeg;base64,${imageData.toString('base64')}`;
-//         }
-  
-//         const categoryData = await Category.find();
-//         res.render('editproduct', { productData, categoryData });
-//       } else {
-//         req.flash('error', 'Product not found');
-//         res.redirect('/admin/products');
-//       }
-//     } catch (error) {
-//       console.log(error.message);
-//       req.flash('error', 'An error occurred while fetching the product');
-//       res.redirect('/admin/products');
-//     }
-//   };
-  
-
-
 
 const renderEditProduct = async (req, res) => {
     try {
@@ -509,15 +481,7 @@ module.exports = {
     unlistProduct,
     renderEditProduct,
     updateProduct,
-
-
     orderDetails,
-  
-
-
-
     renderOrders,
     updateOrderStatus,
-
-
 };

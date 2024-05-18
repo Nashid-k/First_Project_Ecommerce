@@ -72,8 +72,8 @@ adminRoute.put('/updateProduct/:id',productsUpload,adminController.updateProduct
 
 
 
-adminRoute.get('/orders',adminAuth.is_login,adminController.renderOrders)
-adminRoute.post('/updateOrderStatus',adminAuth.is_login,adminController.updateOrderStatus)
-adminRoute.get('/orderDetails',adminAuth.is_login,adminController.orderDetails)
+adminRoute.get('/orders',adminController.renderOrders)
+adminRoute.post('/updateOrderStatus',adminController.updateOrderStatus)
+adminRoute.get('/orderDetails',adminController.orderDetails)
 
 module.exports = adminRoute

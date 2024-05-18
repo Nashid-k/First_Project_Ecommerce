@@ -252,7 +252,7 @@ const renderMyOrder = async (req, res) => {
             const userId = req.session.userId;
             const user = await User.findById(userId);
             const orderData = await Order.find({ userId }).populate("orderedItem.productId");        
-          
+          console.log(orderData);
             res.render('myorders', { orderData, userData: user });
         } else {
             res.redirect('/login');
@@ -262,55 +262,61 @@ const renderMyOrder = async (req, res) => {
     }
 }
 
-// const renderOrderDetails = async (req, res) => {
-//     try {
-//         const userId = req.session.userId;
-      
-
-        
-//         const productId = req.query.productId;
-//         const productsId = new mongoose.Types.ObjectId(productId);
-      
-
-
-//         const orderData = await Order.aggregate([
-//           { $match:{userId:new mongoose.Types.ObjectId(userId)}},{$unwind:"$orderedItem"},{$match:{"orderedItem._id":productsId}}
-//         ])
-            
-// console.log(orderData);
-   
-//         res.render('orderdetails', { orderData });
-//     } catch (error) {
-//         console.log(error.message);
-//         res.status(500).json({ error: "Internal server error" });
-//     }
-// };
 
 
 const renderOrderDetails = async (req, res) => {
     try {
-        
         const userId = req.session.userId;
         const userData = await User.findById(userId)
-        const productId = req.params.productId;
+        const orderId = req.params.orderId;
 
         const orderData = await Order.findOne({
             userId,
-            "orderedItem.productId": productId
+            _id: orderId
         })
-            .populate("orderedItem.productId")
-            .populate("deliveryAddress");
+        .populate("orderedItem.productId")
+        .populate("deliveryAddress");
 
         if (!orderData) {
             return res.status(404).render('error', { message: 'Order not found' });
         }
 
-        res.render('orderdetails', { orderData,userData });
+        res.render('orderdetails', { orderData, userData });
     } catch (error) {
         console.log(error.message);
         res.status(500).render('error', { message: 'Internal Server Error' });
     }
 }
+
+
+
+const cancelOrder = async (req, res) => {
+    try {
+  
+        const { orderId } = req.body; 
+console.log(`order id is ${orderId}`);
+   
+        const updatedOrder = await Order.findByIdAndUpdate(
+            orderId,
+            { orderStatus: 'Cancelled' },
+            { new: true }
+        );
+
+       
+        const { reasonForCancel } = req.body; 
+        if (reasonForCancel) {
+            updatedOrder.reasonForCancel = reasonForCancel;
+            await updatedOrder.save();
+        }
+res.redirect('/orderdetails')
+       
+        // res.status(200).json({ message: "Order cancelled successfully" });
+    } catch (error) {
+        console.log(error.message);
+      
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
 
 module.exports = {
     renderProfile,
@@ -324,7 +330,7 @@ module.exports = {
     deleteAddress,
 
 
-
+    cancelOrder,
     renderOrderDetails,
     renderMyOrder
 };

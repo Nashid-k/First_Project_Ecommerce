@@ -93,7 +93,8 @@ userRoute.post('/addCheckoutAddress',cartController.insertCheckoutAddress)
 
 
 userRoute.get('/myOrders',userAuth.is_login,profileController.renderMyOrder)
-userRoute.get('/orderDetails/:productId',userAuth.is_login,profileController.renderOrderDetails)
+userRoute.get('/orderDetails/:orderId',userAuth.is_login,profileController.renderOrderDetails)
+userRoute.post('/cancelOrder', profileController.cancelOrder);
 
 
 
