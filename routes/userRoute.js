@@ -16,7 +16,7 @@ userRoute.get('/',userController.renderHome)
 userRoute.get('/shop',userController.renderShop)
 userRoute.get('/productDetails/:productId',userController.renderProductDetails);
 userRoute.get('/women',userController.renderWomen)
-userRoute.get('/sort/:criteria',userController.sortProducts);
+userRoute.get('/sort/:category/:criteria', userController.sortProducts);
 
 
 
@@ -87,11 +87,25 @@ userRoute.get('/checkout',cartController.loadCheckout)
 userRoute.post('/updateCartItem',cartController.updateCartItem)
 userRoute.post('/removeCartItem',cartController.removeCartItem)
 userRoute.post('/placeOrder',cartController.placeOrder)
-
+userRoute.get('/addNewAddress',cartController.addNewAddress)
+userRoute.post('/addCheckoutAddress',cartController.insertCheckoutAddress)
 
 
 
 userRoute.get('/myOrders',userAuth.is_login,profileController.renderMyOrder)
 userRoute.get('/orderDetails/:productId',userAuth.is_login,profileController.renderOrderDetails)
+
+
+
+
+userRoute.get('*', (req, res, next) => {
+  if (req.url.startsWith('/admin')) {
+    return next();
+  }else if (req.url.startsWith('/auth/callback')) {
+    return next();
+  }
+  res.render('404'); 
+});
+
 
 module.exports = userRoute

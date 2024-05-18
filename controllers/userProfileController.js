@@ -111,13 +111,13 @@ const insertNewAddress = async (req, res) => {
 
         if (!pincode || !locality || !address || !city || !state || !addresstype) {
             req.flash("error", "All fields are required");
-            return res.redirect("/address");
+            return res.redirect("/add-address");
         }
 
         const pincodeRegex = /^\d+$/;
         if (!pincodeRegex.test(pincode)) {
             req.flash("error", "Pincode must contain only numbers");
-            return res.redirect("/address");
+            return res.redirect("/add-address");
         }
 
 
@@ -135,7 +135,7 @@ const insertNewAddress = async (req, res) => {
             city,
             state,
             addresstype,
-            state
+            
         });
 
         const userAddress = await newAddress.save();
@@ -143,6 +143,7 @@ const insertNewAddress = async (req, res) => {
         req.session.useraddress = userAddress;
         req.flash("success", "Address added successfully");
         res.redirect("/address");
+   
     } catch (error) {
         console.log(error.message);
         req.flash("error", "Internal server error");
@@ -162,11 +163,11 @@ const renderEditAddress = async (req, res) => {
         const address = await Address.findById(addressId);
 
         if (!address || address.userId !== userId) {
-            // Handle case where address is not found or does not belong to the user
+           
             return res.status(404).send("Address not found");
         }
 
-        res.render("editaddress", { userData: [address] }); // Pass the address as an array to match the forEach loop in the template
+        res.render("editaddress", { userData: [address] }); 
     } catch (error) {
         console.error("Error rendering edit address:", error);
         res.status(500).json({ error: "Internal server error" });

@@ -59,13 +59,13 @@ adminRoute.post('/unlistCategory',adminController.unlistCategory)
 /***************************************************** PRODUCTS ***************************************************************************************/
 
 
-adminRoute.get('/products',adminAuth.is_login,adminController.renderProducts)
-adminRoute.get('/addProduct',adminAuth.is_login,adminController.renderAddProducts)
+adminRoute.get('/products',adminController.renderProducts)
+adminRoute.get('/addProduct',adminController.renderAddProducts)
 adminRoute.post('/insertProduct', productsUpload, adminController.insertProducts);
 adminRoute.post('/listProduct',adminController.listProduct)
 adminRoute.post('/unlistProduct',adminController.unlistProduct)
 adminRoute.get('/editProduct',adminController.renderEditProduct)
-adminRoute.put('/updateProduct',adminController.updateProduct)
+adminRoute.put('/updateProduct/:id',productsUpload,adminController.updateProduct)
 
 
 
@@ -75,41 +75,5 @@ adminRoute.put('/updateProduct',adminController.updateProduct)
 adminRoute.get('/orders',adminAuth.is_login,adminController.renderOrders)
 adminRoute.post('/updateOrderStatus',adminAuth.is_login,adminController.updateOrderStatus)
 adminRoute.get('/orderDetails',adminAuth.is_login,adminController.orderDetails)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 module.exports = adminRoute

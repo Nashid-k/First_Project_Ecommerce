@@ -6,6 +6,7 @@ const Products = require('../models/productModel')
 const Category = require("../models/categoryModel");
 const CartItem = require('../models/cartModel')
 
+
 function generateOTP() {
     return String(Math.floor(1000 + Math.random() * 9000));
 }
@@ -18,12 +19,12 @@ const sendPassResetMail = async(name,email,otp)=>{
             secure: false,
             requireTLS: true,
             auth: {
-                user: "nashifa4u@gmail.com",
-                pass: "kdvj hzej eijm oiry",
+                user: process.env.NODE_USER,
+                pass:process.env.NODE_PASS,
             },
         });
         const mailOptions = {
-            from: "nashifa4u@gmail.com",
+            from: process.env.NODE_USER,
             to: email,
             subject: "Reset Password OTP",
             html: `
@@ -65,13 +66,13 @@ const sendVerifyMail = async (name, email, user_id, otp) => {
             secure: false,
             requireTLS: true,
             auth: {
-                user: "nashifa4u@gmail.com",
-                pass: "kdvj hzej eijm oiry",
+                user: process.env.NODE_USER,
+                pass: process.env.NODE_PASS,
             },
         });
 
         const mailOptions = {
-            from: "nashifa4u@gmail.com",
+            from:  process.env.NODE_USER,
             to: email,
             subject: "Your Nashifa Account Verification OTP",
             html: `
@@ -308,8 +309,7 @@ const resendOtp = async (req, res) => {
 
 const verifyLogin = async (req, res) => {
     try {
-        const { email, password } = req.body;
-
+        const { email, password } = req.body; 
         const userData = await User.findOne({ email:email });
         if(!userData){
             req.flash("error", "Email or password is incorrect");
@@ -445,52 +445,63 @@ const renderWomen = async (req, res) => {
 
   const sortProducts = async (req, res) => {
     try {
-      const { criteria } = req.params;
-      let productData;
-      switch (criteria) {
-        case 'nameAZ':
-          productData = await Products.find().collation({ locale: "en" }).sort({ name: 1 });
-          break;
-        case 'nameZA':
-          productData = await Products.find().collation({ locale: "en" }).sort({ name: -1 });
-          break;
-        case 'newArrivals':
-          productData = await Products.find().sort({ createdAt: -1 });
-          break;
-        case 'priceLowToHigh':
-          productData = await Products.find().sort({ price: 1 });
-          break;
-        case 'priceHighToLow':
-          productData = await Products.find().sort({ price: -1 });
-          break;
-        default:
-          res.status(400).json({ error: 'Invalid sorting criteria' });
-          return;
-      }
-  
-      
-        const newLabelCountownDays = 3;
+        const { category, criteria } = req.params;
+        let productData;
+
+        switch (criteria) {
+            case 'nameAZ':
+                productData = await Products.find({ category }).collation({ locale: "en" }).sort({ name: 1 });
+                break;
+            case 'nameZA':
+                productData = await Products.find({ category }).collation({ locale: "en" }).sort({ name: -1 });
+                break;
+            case 'newArrivals':
+                productData = await Products.find({ category }).sort({ createdAt: -1 });
+                break;
+            case 'priceLowToHigh':
+                productData = await Products.find({ category }).sort({ price: 1 });
+                break;
+            case 'priceHighToLow':
+                productData = await Products.find({ category }).sort({ price: -1 });
+                break;
+            case 'sizeS':
+                productData = await Products.find({ category, size: 'small' });
+                break;
+            case 'sizeM':
+                productData = await Products.find({ category, size: 'medium' });
+                break;
+            case 'sizeL':
+                productData = await Products.find({ category, size: 'large' });
+                break;
+            default:
+                res.status(400).json({ error: 'Invalid sorting criteria' });
+                return;
+        }
+
+        const newLabelCountdownDays = 3;
         const modifiedProductData = productData.map((product) => {
-        const isOutOfStock = product.quantity === 0;
-        const createdAt = new Date(product.createdAt);
-        const today = new Date();
-        const daysDifference = Math.floor((today - createdAt) / (1000 * 60 * 60 * 24));
-        const isNew = daysDifference <= newLabelCountownDays && !isOutOfStock;
-  
-        return {
-          ...product.toObject(),
-          outOfStock: isOutOfStock,
-          isNew,
-        };
-      });
-  
- 
-      res.json({ productData: modifiedProductData });
+            const isOutOfStock = product.quantity === 0;
+            const createdAt = new Date(product.createdAt);
+            const today = new Date();
+            const daysDifference = Math.floor((today - createdAt) / (1000 * 60 * 60 * 24));
+            const isNew = daysDifference <= newLabelCountdownDays && !isOutOfStock;
+
+            return {
+                ...product.toObject(),
+                outOfStock: isOutOfStock,
+                isNew,
+            };
+        });
+
+        res.json({ productData: modifiedProductData });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal server error' });
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
     }
-  };
+};
+
+
+
 
 const renderForgotPassword =async(req,res)=>{
     try{

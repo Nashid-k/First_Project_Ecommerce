@@ -381,7 +381,7 @@ const renderEditProduct = async (req, res) => {
   
       if (productData) {
         const categoryData = await Category.find(); // Fetch category data
-        res.render('editproduct', { productData, categoryData }); // Pass both productData and categoryData to the template
+        res.render('editproduct', { product:productData, categoryData,productData }); // Pass both productData and categoryData to the template
       } else {
         req.flash('error', 'Product not found');
         res.redirect('/admin/products');
@@ -396,15 +396,18 @@ const renderEditProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
     try {
-        const { productId, name, category, description, quantity, price, size, mainImage, screenshots } = req.body;
+        const { id } = req.params;
 
-        // Check if the product exists
-        const existingProduct = await Products.findById(productId);
+
+        const { name, category, description, quantity, price, size } = req.body;
+
+ 
+        const existingProduct = await Products.findById(id);
         if (!existingProduct) {
             return res.status(404).json({ error: "Product not found" });
         }
 
-        // Update the product details
+
         existingProduct.name = name;
         existingProduct.category = category;
         existingProduct.description = description;
@@ -412,28 +415,27 @@ const updateProduct = async (req, res) => {
         existingProduct.price = price;
         existingProduct.size = size;
 
-        // Update main image if provided
-        if (mainImage) {
-            existingProduct.mainImage = mainImage;
+
+        if (req.files && req.files['mainImage']) {
+            const mainImage = req.files['mainImage'][0];
+            existingProduct.mainImage = mainImage.filename;
         }
 
-        // Update screenshots if provided
-        if (screenshots) {
+        if (req.files && req.files['screenshots']) {
+            const screenshots = req.files['screenshots'].map(file => file.filename);
             existingProduct.screenshots = screenshots;
         }
 
-        // Save the updated product
-        const updatedProduct = await existingProduct.save();
+        await existingProduct.save();
 
-        // Redirect to the product page with a success message
-        req.flash("success", "Product updated successfully");
-        res.redirect("/admin/products");
+        return res.status(200).json({ message: "Product updated successfully", redirect: "/admin/products" });
     } catch (error) {
-        console.error(error.message);
-        req.flash("error", "An error occurred while updating the product");
-        res.redirect("/admin/products");
+        console.error("Error updating product:", error);
+        return res.status(500).json({ error: "An error occurred while updating the product" });
     }
 };
+
+
 
 
   const renderOrders = async(req,res)=>{

@@ -64,6 +64,7 @@ const updateCartItem = async (req, res) => {
         const userId = req.session.userId;
         const { productId, quantityChange } = req.body;
         const cartItems = await CartItem.find({ userId }).populate("product.productId");
+     
 
         if (!cartItems || cartItems.length === 0) {
             return res.status(404).json({ message: "No cart items found for the user" });
@@ -96,6 +97,7 @@ const updateCartItem = async (req, res) => {
         );
 
         const updatedCartItems = await CartItem.find({ userId }).populate("product.productId");
+        
         res.status(200).json({
             message: "Cart items updated successfully",
             cartItems: updatedCartItems,
@@ -222,7 +224,71 @@ const placeOrder = async (req, res) => {
         res.redirect("/checkout");
     }
 };
+const addNewAddress = async(req,res)=>{
+try{
+    const userId = req.session.userId
+    if(!userId){
+        res.redirect('/login')
+    }else{
+        const userData = await User.findById(userId)
+        res.render('addCheckoutAddress',{userData})
+    }
+}catch(error){
+    console.log(error.message);
+}
+}
+const     insertCheckoutAddress= async(req,res)=>{
+    try {
+        const userId = req.session.userId;
+        const { pincode, locality, address, city, state, addresstype } = req.body;
 
+        if (!userId) {
+            req.flash("error", "You must be logged in to perform this action");
+            return res.redirect("/login");
+        }
+
+        if (!pincode || !locality || !address || !city || !state || !addresstype) {
+            req.flash("error", "All fields are required");
+            return res.redirect("/addNewAddress");
+        }
+
+        const pincodeRegex = /^\d+$/;
+        if (!pincodeRegex.test(pincode)) {
+            req.flash("error", "Pincode must contain only numbers");
+            return res.redirect("/addNewAddress");
+        }
+
+
+        const allFieldsAreSpaces = Object.values(req.body).every(value => value.trim() === "");
+        if (allFieldsAreSpaces) {
+            req.flash("error", "All fields cannot be empty or contain only spaces");
+            return res.redirect("/addNewAddress");
+        }
+
+        const newAddress = new Address({
+            userId,
+            pincode,
+            locality,
+            address,
+            city,
+            state,
+            addresstype,
+            
+        });
+
+        const userAddress = await newAddress.save();
+
+        req.session.useraddress = userAddress;
+        req.flash("success", "Address added successfully");
+        res.redirect("/checkout");
+   
+    } catch (error) {
+        console.log(error.message);
+        req.flash("error", "Internal server error");
+        res.redirect("/addNewAddress");
+    }
+    }
+    
 module.exports = {
     renderCart,
     addToCart,
@@ -230,4 +296,6 @@ module.exports = {
     loadCheckout,
     updateCartItem,
     placeOrder,
+    addNewAddress,
+    insertCheckoutAddress
 };

@@ -5,43 +5,50 @@
     <div class="card-body">
       <h5 class="card-title mb-4">Orders</h5>
       <div class="table-responsive">
-        <div class="table-container"> <!-- Wrapper added -->
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Customer Name</th>
-                <th>Product Image</th>
-                <th>Product Name</th>
-                <th>Status</th>
-                <th>Action</th> <!-- Add this header for the action column -->
-              </tr>
-            </thead>
-            <tbody>
-              <% orderData.forEach((order, index) => { %>
-                <% order.orderedItem.forEach((item, idx) => { %>
-                  <tr>
-                    <td><%= order._id %></td>
-                    <td><%= order.userId.name %></td>
-                    <td>
-                      <div style="max-width: 100px; max-height: 100px; overflow: hidden; border: 1px solid #ccc; border-radius: 5px;">
-                        <img src="<%= process.env.BASE_URL %>/uploads/products/<%= item.productId.mainImage %>" alt="<%= item.productId.name %> image" style="width: 100%; height: auto; object-fit: cover;">
-                      </div>
-                    </td>
-                    <td><%= item.productId.name %></td>
-                    <td>
-                      <span class="badge status-label <%= order.orderStatus.toLowerCase() %>"><%= order.orderStatus %></span>
-                    </td>
-                    <td>
-                      <!-- Action column -->
-                      <a href="/admin/orderDetails/?orderId=<%= order._id %>" class="btn btn-primary btn-sm">View Details</a>
-                    </td>
-                  </tr>
+        <div class="table-container">
+          <% if (!orderData || orderData.length === 0) { %>
+            <p>No orders yet.</p>
+          <% } else { %>
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer Name</th>
+                  <th>Product Image</th>
+                  <th>Product Name</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% orderData.forEach((order, index) => { %>
+                  <% order.orderedItem.forEach((item, idx) => { %>
+                    <tr>
+                      <td><%= order._id %></td>
+                      <td><%= order.userId? order.userId.name : 'Unknown' %></td>
+                      <td>
+                        <div style="max-width: 100px; max-height: 100px; overflow: hidden; border: 1px solid #ccc; border-radius: 5px;">
+                          <% if (item.productId && item.productId.mainImage) { %>
+                            <img src="<%= process.env.BASE_URL %>/uploads/products/<%= item.productId.mainImage %>" alt="<%= item.productId.name %> image" style="width: 100%; height: auto; object-fit: cover;">
+                          <% } else { %>
+                            <span>No image available</span>
+                          <% } %>
+                        </div>
+                      </td>
+                      <td><%= item.productId? item.productId.name : 'No Product Name' %></td>
+                      <td>
+                        <span class="badge status-label <%= order.orderStatus.toLowerCase() %>"><%= order.orderStatus %></span>
+                      </td>
+                      <td>
+                        <a href="/admin/orderDetails/?orderId=<%= order._id %>" class="btn btn-primary btn-sm">View Details</a>
+                      </td>
+                    </tr>
+                  <% }); %>
                 <% }); %>
-              <% }); %>
-            </tbody>
-          </table>
-        </div> <!-- End of .table-container -->
+              </tbody>
+            </table>
+          <% } %>
+        </div>
       </div>
     </div>
   </div>
@@ -49,25 +56,25 @@
 <%- include('../layouts/adminfooter') %>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <style>
-  .table-container {
+ .table-container {
     position: relative;
     overflow-x: auto; /* Add horizontal scroll for small screens */
   }
 
   /* Define colors for each status */
-  .status-label.pending {
+ .status-label.pending {
     background-color: #ffc107; /* Yellow */
   }
-  .status-label.confirmed {
+ .status-label.confirmed {
     background-color: #0d6efd; /* Blue */
   }
-  .status-label.shipped {
+ .status-label.shipped {
     background-color: #198754; /* Green */
   }
-  .status-label.delivered {
+ .status-label.delivered {
     background-color: #198754; /* Green */
   }
-  .status-label.cancelled {
+ .status-label.cancelled {
     background-color: #dc3545; /* Red */
   }
 </style>
