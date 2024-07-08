@@ -14,12 +14,10 @@ dotenv.config();
 
 const mongoUrl = 'mongodb+srv://nashifa4u:6hUkUU62IeOAq7Xg@nashifa.9gfjeop.mongodb.net/?retryWrites=true&w=majority&appName=Nashifa';
 
-mongoose.connect(mongoUrl, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.error('MongoDB connection error:', err));
+mongoose.connect(mongoUrl)
+    .then(() => console.log('MongoDB connected'))
+    .catch(err => console.error('MongoDB connection error:', err));
+
 
 
 const userRoute = require('./routes/userRoute');
