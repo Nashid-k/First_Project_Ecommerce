@@ -9,15 +9,13 @@ require('./middlewares/passport');
 
 dotenv.config();
 
-mongoose.connect(process.env.mongo_url, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log('MongoDB connected'))
-    .catch(err => console.error('MongoDB connection error:', err));
+mongoose.connect(process.env.mongo_url);
 
 const userRoute = require('./routes/userRoute');
 const adminRoute = require('./routes/adminRoute');
 
 const app = express();
-app.set('view engine', 'ejs');
+app.set('view engine','ejs')
 
 // Middlewares
 app.use(express.json());
