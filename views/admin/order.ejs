@@ -21,11 +21,11 @@
                 </tr>
               </thead>
               <tbody>
-                <% orderData.forEach((order, index) => { %>
-                  <% order.orderedItem.forEach((item, idx) => { %>
+                <% orderData.forEach((order) => { %>
+                  <% order.orderedItem.forEach((item) => { %>
                     <tr>
                       <td><%= order._id %></td>
-                      <td><%= order.userId? order.userId.name : 'Unknown' %></td>
+                      <td><%= order.userId ? order.userId.name : 'Unknown' %></td>
                       <td>
                         <div style="max-width: 100px; max-height: 100px; overflow: hidden; border: 1px solid #ccc; border-radius: 5px;">
                           <% if (item.productId && item.productId.mainImage) { %>
@@ -35,12 +35,12 @@
                           <% } %>
                         </div>
                       </td>
-                      <td><%= item.productId? item.productId.name : 'No Product Name' %></td>
+                      <td><%= item.productId ? item.productId.name : 'No Product Name' %></td>
                       <td>
-                        <span class="badge status-label <%= order.orderStatus.toLowerCase() %>"><%= order.orderStatus %></span>
+                        <span class="badge status-label <%= item.status.toLowerCase() %>"><%= item.status %></span>
                       </td>
                       <td>
-                        <a href="/admin/orderDetails/?orderId=<%= order._id %>" class="btn btn-primary btn-sm">View Details</a>
+                        <a href="/admin/orderDetails/?productId=<%= item.productId._id %>&userId=<%= order.userId._id %>" class="btn btn-primary btn-sm">View Details</a>
                       </td>
                     </tr>
                   <% }); %>
@@ -56,25 +56,28 @@
 <%- include('../layouts/adminfooter') %>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <style>
- .table-container {
+  .table-container {
     position: relative;
     overflow-x: auto; /* Add horizontal scroll for small screens */
   }
 
   /* Define colors for each status */
- .status-label.pending {
+  .status-label.returned {
+    background-color: #dc3545; /* Red */
+  }
+  .status-label.pending {
     background-color: #ffc107; /* Yellow */
   }
- .status-label.confirmed {
+  .status-label.confirmed {
     background-color: #0d6efd; /* Blue */
   }
- .status-label.shipped {
+  .status-label.shipped {
     background-color: #198754; /* Green */
   }
- .status-label.delivered {
+  .status-label.delivered {
     background-color: #198754; /* Green */
   }
- .status-label.cancelled {
+  .status-label.cancelled {
     background-color: #dc3545; /* Red */
   }
 </style>

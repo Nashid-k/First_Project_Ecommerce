@@ -11,7 +11,6 @@ const userSchema = new mongoose.Schema({
     },
     mobile: {
         type: Number,
-        
     },
     password: {
         type: String,
@@ -28,8 +27,27 @@ const userSchema = new mongoose.Schema({
     block: {
         type: Boolean,
         default: false
-    }
-   
+    },
+    referral_code: {
+        type: String,
+    },
+    referred_code: {
+        type: String,
+    },
+    referral_bonus_given: {
+        type: Boolean,
+        default: false
+    },
+    usedCoupons: {
+        type: [String],
+        default: []
+    },
+    availableCoupons: [
+        {
+            couponId: { type: mongoose.Schema.Types.ObjectId, ref: 'Coupon' },
+            couponCode: { type: String }
+        }
+    ]
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);

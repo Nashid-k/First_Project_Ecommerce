@@ -75,7 +75,10 @@
         <div class="mb-3">
           <label for="mainImage" class="form-label">Main Image</label>
           <% if (productData.mainImage) { %>
-            <img src="/uploads/products/<%= productData.mainImage %>" alt="Main Image" style="max-width: 200px; max-height: 150px; object-fit: cover;">
+            <div>
+              <img src="/uploads/products/<%= productData.mainImage %>" alt="Main Image" style="max-width: 200px; max-height: 150px; object-fit: cover;">
+              <button type="button" class="btn btn-danger btn-sm" onclick="removeImage('mainImage')">Remove</button>
+            </div>
           <% } else { %>
             <span>No image available</span>
           <% } %>
@@ -103,9 +106,9 @@
 </div>
 
 <%- include('../layouts/adminfooter') %>
-
+<script defer src="https://cdn.crop.guide/loader/l.js?c=BJXLWS"></script>
 <script>
- function previewImage(event, previewId) {
+  function previewImage(event, previewId) {
     const preview = document.getElementById(previewId);
     const file = event.target.files[0];
     if (file) {
@@ -142,6 +145,16 @@
       }
     }
   }
+
+  function removeImage(imageId) {
+  console.log('Removing image...');
+  const imageElement = document.getElementById(imageId);
+  
+  // Remove the parent container of the image, which contains both the image and the remove button
+  imageElement.parentNode.parentNode.removeChild(imageElement.parentNode);
+}
+
+
   // Flash messages handling
   const flashMessagesContainer = document.getElementById('flash-messages');
 
@@ -176,7 +189,7 @@
 
   if (form) {
     form.addEventListener('submit', async (e) => {
-      e.preventDefault(); 
+      e.preventDefault();
 
       try {
         const formData = new FormData(form);
@@ -187,15 +200,15 @@
         });
 
         if (!response.ok) {
-          const errorData = await response.text(); 
-          displayFlashMessage('danger', errorData || 'An error occurred while updating the product');
+          const errorData = await response.json(); // Parse response as JSON
+          displayFlashMessage('danger', errorData.error || 'An error occurred while updating the product');
         } else {
           const responseData = await response.json();
           displayFlashMessage('success', responseData.message);
 
           setTimeout(() => {
             window.location.href = responseData.redirect || '/admin/products';
-          }, 1500); 
+          }, 1500);
         }
       } catch (error) {
         console.error(error);

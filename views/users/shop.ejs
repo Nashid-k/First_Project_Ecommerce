@@ -1,18 +1,16 @@
-<%-include('../layouts/header')  %>
+<%- include('../layouts/header') %>
 <style>
-
     select {
-        padding: 10px;
+        padding: 8px;
         border: 1px solid #ccc;
-        border-radius: 5px;
-        font-size: 16px;
+        border-radius: 3px;
+        font-size: 14px;
         width: 100%;
         margin-bottom: 10px;
         background-color: #fff;
         color: #333;
         cursor: pointer;
     }
-
 
     option {
         background-color: #fff;
@@ -28,39 +26,80 @@
         position: fixed;
         top: 0;
         width: 100%;
-        z-index: 1000; 
-        background-color: #fff; 
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+        z-index: 1000;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .breadcrumb-option {
         position: fixed;
-        top: 50px; 
+        top: 50px;
         width: 100%;
-   z-index: 10;
+        z-index: 10;
         background-color: #fff;
-        padding-top: 90px; 
+        padding-top: 90px;
     }
 
     .sidebar__fixed {
         position: sticky;
-        top: 200px; 
-        height: calc(100vh - 150px); 
+        top: 200px;
+        height: calc(100vh - 150px);
         overflow-y: auto;
     }
-    #productList{
-padding-top: 100px;
+
+    #productList {
+        padding-top: 100px;
     }
 
+    .search-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
 
+    .search-container input[type="text"] {
+        padding: 6px;
+        border: 1px solid #ccc;
+        border-radius: 3px 0 0 3px;
+        font-size: 14px;
+        width: 200px;
+     
+    }
+
+    .search-container button {
+        padding: 6px 12px;
+        background-color: #333;
+        color: #fff;
+        border: none;
+        border-radius: 0 3px 3px 0;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .product__item__text .rating {
+        margin-bottom: 10px;
+    }
+
+    .product__item__text .rating i {
+        color: #f8ce0b;
+        font-size: 16px;
+    }
+
+    .product__item__text .rating .fa-star-o {
+        color: #ccc;
+    }
+
+    .product__item__text .rating span {
+        margin-left: 5px;
+        color: #777;
+    }
 </style>
 
-
 <!-- Breadcrumb Begin -->
-<div class="breadcrumb-option ">
+<div class="breadcrumb-option">
     <div class="container">
         <div class="row">
-            <div class="col-lg-12 ">
+            <div class="col-lg-12">
                 <div class="breadcrumb__links">
                     <a href="/"><i class="fa fa-home"></i> Home</a>
                     <span>Shop</span>
@@ -75,13 +114,14 @@ padding-top: 100px;
 <section class="shop spad">
     <div class="container">
         <div class="row">
-            <div class="col-lg-3 col-md-3 ">
+            <div class="col-lg-3 col-md-3">
                 <div class="shop__sidebar sidebar__fixed">
-                    <!-- <div>
-                        <input type="search" value="search">
-                    </div> -->
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Search products...">
+                        <button id="searchButton"><i class="fa fa-search"></i></button>
+                    </div>
                     <div class="sidebar__categories">
-                        <div class="section-title ">
+                        <div class="section-title">
                             <h4>Categories</h4>
                         </div>
                         <div class="categories__accordion">
@@ -127,51 +167,51 @@ padding-top: 100px;
             <div class="col-lg-9 col-md-9">
                 <div class="row" id="productList">
                     <% productData.forEach(product => { %>
-                    <div class="col-lg-4 col-md-6">
-                        <div class="product__item">
-                            <div class="product__item__pic" style="display: flex; justify-content: center; align-items: center;">
-                                <a href="/productDetails/<%= product._id %>">
-                                    <img src="/uploads/products/<%= product.mainImage %>" alt="<%= product.name %>" style="max-width: 100%; max-height: 100%; object-fit: contain;">
-                                </a>
-                                <% if (product.quantity == 0) { %>
-                                <div class="label out-of-stock" style="background-color: black; color: white;width: 110px; height: 20px;">Out of Stock</div>
-                                <% } else if (product.isNew) { %>
-                                <div class="label new" style="background-color: #36a300;width: 50px; height: 20px;">New</div>
-                                <% } %>
-                                <ul class="product__hover">
-                                    <li><a href="/uploads/products/<%= product.mainImage[0] %>" class="image-popup"><span class="arrow_expand"></span></a></li>
-                                    <li><a href="/wishlist"><span class="icon_heart_alt"></span></a></li>
-                                    <% if (product.quantity > 0) { %>
-                                    <li><a href="/addToCart?productId=<%= product._id %>"><span class="icon_bag_alt"></span></a></li>
-                                    <% } else { %>
-
-                                    <li><span class="icon_bag_alt_disabled"></span></li>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="product__item">
+                                <div class="product__item__pic" style="display: flex; justify-content: center; align-items: center;">
+                                    <a href="/productDetails/<%= product._id %>">
+                                        <img src="/uploads/products/<%= product.mainImage %>" alt="<%= product.name %>" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                    </a>
+                                    <% if (product.outOfStock) { %>
+                                        <div class="label out-of-stock" style="background-color: black; color: white;width: 110px; height: 20px;">Out of Stock</div>
+                                    <% } else if (product.isNew) { %>
+                                        <div class="label new" style="background-color: #36a300;width: 50px; height: 20px;">New</div>
                                     <% } %>
-                                </ul>
-
-                            </div>
-                            <div class="product__item__text">
-                                <h6><a href="/productDetails/<%= product._id %>"><%= product.name %></a></h6>
-                                <div class="rating">
-                                    <i class="fa fa-star"></i>
-                                    <i class="fa fa-star"></i>
-                                    <i class="fa fa-star"></i>
-                                    <i class="fa fa-star"></i>
-                                    <i class="fa fa-star"></i>
+                                    <ul class="product__hover">
+                                        <li><a href="/addToWishlist?productId=<%= product._id %>"><span class="icon_heart_alt"></span></a></li>
+                                        <% if (!product.outOfStock) { %>
+                                            <li><a href="/addToCart?productId=<%= product._id %>"><span class="icon_bag_alt"></span></a></li>
+                                        <% } else { %>
+                                            <li><span class="icon_bag_alt_disabled"></span></li>
+                                        <% } %>
+                                    </ul>
                                 </div>
-                                <div class="product__price">₹ <%= product.price %></div>
+                                <div class="product__item__text">
+                                    <h6><a href="/productDetails/<%= product._id %>"><%= product.name %></a></h6>
+                                    <div class="rating">
+                                        <% for (let i = 1; i <= 5; i++) { %>
+                                            <% if (i <= Math.floor(product.averageRating)) { %>
+                                                <i class="fa fa-star"></i>
+                                            <% } else if (i === Math.ceil(product.averageRating) && product.averageRating % 1 !== 0) { %>
+                                                <i class="fa fa-star-half-o"></i>
+                                            <% } else { %>
+                                                <i class="fa fa-star-o"></i>
+                                            <% } %>
+                                        <% } %>
+                                        <span>(<%= product.totalReviews %> reviews)</span>
+                                    </div>
+                                    <% if (product.discountedPrice < product.price) { %>
+                                        <div class="product__price">
+                                            <span style="text-decoration: line-through;">₹ <%= product.price %></span> ₹ <%= product.discountedPrice %>
+                                        </div>
+                                    <% } else { %>
+                                        <div class="product__price">₹ <%= product.price %></div>
+                                    <% } %>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <% }) %>
-                </div>
-                <div class="col-lg-12 text-center">
-                    <div class="pagination__option">
-                        <a href="#">1</a>
-                        <a href="#">2</a>
-                        <a href="#">3</a>
-                        <a href="#"><i class="fa fa-angle-right"></i></a>
-                    </div>
+                    <% }); %>
                 </div>
             </div>
         </div>
@@ -179,89 +219,191 @@ padding-top: 100px;
 </section>
 <!-- Shop Section End -->
 
-<%-include('../layouts/footer')  %>
+<%- include('../layouts/footer') %>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function () {
     const categoryDropdown = document.getElementById('categoryDropdown');
     const sizeDropdown = document.getElementById('sizeDropdown');
     const sortDropdown = document.getElementById('sortDropdown');
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
+    const productList = document.getElementById('productList');
+    const paginationContainer = document.querySelector('.pagination__option');
 
-    categoryDropdown.addEventListener('change', handleSortChange);
-    sizeDropdown.addEventListener('change', handleSortChange);
-    sortDropdown.addEventListener('change', handleSortChange);
+    let searchQuery = '';
+    let currentPage = 1;
+    let totalPages = 1;
 
-    function handleSortChange() {
+    categoryDropdown.addEventListener('change', handleFilterChange);
+    sizeDropdown.addEventListener('change', handleFilterChange);
+    sortDropdown.addEventListener('change', handleFilterChange);
+    searchInput.addEventListener('input', debounce(handleSearch, 300));
+    searchButton.addEventListener('click', handleSearch);
+
+    function handleFilterChange() {
+        currentPage = 1;
+        fetchProducts();
+    }
+
+    function handleSearch() {
+        searchQuery = searchInput.value.trim();
+        handleFilterChange();
+    }
+
+    function fetchProducts() {
         const selectedCategory = categoryDropdown.value;
         const selectedSize = sizeDropdown.value;
         const selectedSort = sortDropdown.value;
 
-        let url;
-
-        if (selectedCategory !== 'all') {
-            if (selectedSize !== 'all') {
-                url = `/sort/${selectedCategory}/${selectedSize}`;
-            } else {
-                url = `/sort/${selectedCategory}/${selectedSort}`;
-            }
-        } else {
-            if (selectedSize !== 'all') {
-                url = `/sort/${selectedSize}`;
-            } else {
-                url = `/sort/${selectedSort}`;
-            }
+        let criteria = selectedSort;
+        if (selectedSize !== 'all') {
+            criteria = selectedSize;
         }
+
+        let url = `/sort/${selectedCategory}/${criteria}?query=${searchQuery}&page=${currentPage}`;
 
         fetch(url, { method: 'GET' })
             .then(response => response.json())
             .then(data => {
                 console.log('Fetched Data:', data);
                 updateProductList(data.productData);
+                totalPages = data.totalPages;
+                updatePagination();
             })
             .catch(error => {
                 console.error('Error:', error);
             });
     }
-});
 
-function updateProductList(productData) {
-    const productList = document.getElementById('productList');
-    productList.innerHTML = '';
+    function updateProductList(productData) {
+        productList.innerHTML = '';
+        if (productData.length === 0) {
+            productList.innerHTML = '<p>No products available</p>';
+            return;
+        }
 
-    productData.forEach(product => {
-        const outOfStockLabel = product.quantity === 0 ? '<div class="label out-of-stock" style="background-color: black; color: white;width: 110px; height: 20px;">Out of Stock</div>' : '';
-        const newLabel = product.isNew ? '<div class="label new" style="background-color: #36a300;width: 50px; height: 20px;">New</div>' : '';
+        productData.forEach(product => {
+            const outOfStockLabel = product.outOfStock ? '<div class="label out-of-stock" style="background-color: black; color: white;width: 110px; height: 20px;">Out of Stock</div>' : '';
+            const newLabel = product.isNew ? '<div class="label new" style="background-color: #36a300;width: 50px; height: 20px;">New</div>' : '';
 
-        const productItem = `
-            <div class="col-lg-4 col-md-6">
-                <div class="product__item">
-                    <div class="product__item__pic" style="display: flex; justify-content: center; align-items: center;">
-                        <a href="/productDetails/${product._id}">
-                            <img src="/uploads/products/${product.mainImage}" alt="${product.name}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
-                        </a>
-                        ${outOfStockLabel}
-                        ${newLabel}
-                        <ul class="product__hover">
-                            <li><a href="/uploads/products/${product.mainImage}" class="image-popup"><span class="arrow_expand"></span></a></li>
-                            <li><a href="/wishlist"><span class="icon_heart_alt"></span></a></li>
-                            ${product.quantity > 0 ? `<li><a href="/addToCart?productId=${product._id}"><span class="icon_bag_alt"></span></a></li>` : '<li><span class="icon_bag_alt_disabled"></span></li>'}
-                        </ul>
-                    </div>
-                    <div class="product__item__text">
-                        <h6><a href="/productDetails/${product._id}">${product.name}</a></h6>
-                        <div class="rating">
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
+            const priceDisplay = product.discountedPrice < product.price
+                ? `<div class="product__price">
+                    <span style="text-decoration: line-through;">₹ ${product.price.toFixed(2)}</span> 
+                    ₹ ${product.discountedPrice.toFixed(2)}
+                    <span style="color: green;">(${product.discountPercentage}% off)</span>
+                   </div>`
+                : `<div class="product__price">₹ ${product.price.toFixed(2)}</div>`;
+
+            const starRating = renderStarRating(product.averageRating, product.totalReviews);
+
+            const productItem = `
+                <div class="col-lg-4 col-md-6">
+                    <div class="product__item">
+                        <div class="product__item__pic" style="display: flex; justify-content: center; align-items: center;">
+                            <a href="/productDetails/${product._id}">
+                                <img src="/uploads/products/${product.mainImage}" alt="${product.name}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                            </a>
+                            ${outOfStockLabel}
+                            ${newLabel}
+                            <ul class="product__hover">
+                                <li><a href="/addToWishlist?productId=${product._id}"><span class="icon_heart_alt"></span></a></li>
+                                ${product.outOfStock ? '<li><span class="icon_bag_alt_disabled"></span></li>' : `<li><a href="/addToCart?productId=${product._id}"><span class="icon_bag_alt"></span></a></li>`}
+                            </ul>
                         </div>
-                        <div class="product__price">₹ ${product.price}</div>
+                        <div class="product__item__text">
+                            <h6><a href="/productDetails/${product._id}">${product.name}</a></h6>
+                            <div class="rating">
+                                ${starRating}
+                                <span>(${product.totalReviews} reviews)</span>
+                            </div>
+                            ${priceDisplay}
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
-        productList.insertAdjacentHTML('beforeend', productItem);
-    });
-}
+            `;
+            productList.insertAdjacentHTML('beforeend', productItem);
+        });
+    }
+
+    function renderStarRating(averageRating, totalReviews) {
+        let starsHtml = '';
+        for (let i = 1; i <= 5; i++) {
+            if (i <= Math.floor(averageRating)) {
+                starsHtml += '<i class="fa fa-star"></i>';
+            } else if (i === Math.ceil(averageRating) && averageRating % 1 !== 0) {
+                starsHtml += '<i class="fa fa-star-half-o"></i>';
+            } else {
+                starsHtml += '<i class="fa fa-star-o"></i>';
+            }
+        }
+        return starsHtml;
+    }
+
+    function updatePagination() {
+        paginationContainer.innerHTML = '';
+
+        if (currentPage > 1) {
+            paginationContainer.insertAdjacentHTML('beforeend', `<a href="#" class="pagination-link" data-page="${currentPage - 1}"><i class="fa fa-angle-left"></i></a>`);
+        }
+
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+
+        for (let i = startPage; i <= endPage; i++) {
+            paginationContainer.insertAdjacentHTML('beforeend', `<a href="#" class="pagination-link ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</a>`);
+        }
+
+        if (currentPage < totalPages) {
+            paginationContainer.insertAdjacentHTML('beforeend', `<a href="#" class="pagination-link" data-page="${currentPage + 1}"><i class="fa fa-angle-right"></i></a>`);
+        }
+
+        addPaginationEventListeners();
+    }
+
+    function addPaginationEventListeners() {
+        paginationContainer.querySelectorAll('.pagination-link').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const newPage = parseInt(this.dataset.page);
+                if (newPage !== currentPage) {
+                    currentPage = newPage;
+                    fetchProducts();
+                    window.scrollTo(0, 0);
+                }
+            });
+        });
+
+        // Update styles for current page
+        paginationContainer.querySelectorAll('.pagination-link').forEach(button => {
+            button.classList.remove('active-page');
+            if (parseInt(button.dataset.page) === currentPage) {
+                button.classList.add('active-page');
+            }
+        });
+    }
+
+    function debounce(func, delay) {
+        let debounceTimer;
+        return function() {
+            const context = this;
+            const args = arguments;
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => func.apply(context, args), delay);
+        };
+    }
+
+    fetchProducts();
+});
 </script>
+
+
+    
+
+    <style>
+    .active-page {
+        background-color: rgb(102, 96, 96);
+        color: white;
+    }
+    </style>
+    

@@ -1,17 +1,131 @@
 <%- include('../layouts/header') %>
-<%- include('../layouts/sidebar') %>
-<div class="content">
-  <div class="container mt-5">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <li class="breadcrumb-item"><a href="/profile">Profile</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Add New Address</li>
-      </ol>
-    </nav>
+
+<style>
+  .path a {
+    margin-bottom: 5px;
+    color: #000;
+    text-decoration: none;
+  }
+
+  .path a:hover {
+    color: red;
+    transition-duration: 0.6s;
+  }
+
+  .path {
+    font-family: Montserrat, sans-serif;
+    font-size: 19px;
+    text-align: left;
+    margin-right: auto;
+    margin-top: 10px;
+    height: auto;
+  }
+
+  .checkout_form_input input[type="date"] {
+    cursor: pointer;
+  }
+
+  .gender-inputs input[type="radio"] {
+    cursor: pointer;
+  }
+
+  .align-right-btn {
+    float: right;
+  }
+</style>
+</head>
+<body>
+
+<!-- Breadcrumb Begin -->
+<div class="breadcrumb-option">
+  <div class="container">
     <div class="row">
-      <div class="col-md-9">
-        <h2>Add New Address</h2>
+      <div class="col-lg-12">
+        <div class="breadcrumb__links">
+          <a href="/"><i class="fa fa-home"></i> Home</a>
+          <a href="/address">Address</a>
+          <a href="#"><i></i><span>Add Address</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Breadcrumb End -->
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" role="dialog" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="/change-password" method="post">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="currentPassword">Current Password</label>
+            <input type="password" class="form-control" id="currentPassword" name="current_password" required>
+          </div>
+          <div class="form-group">
+            <label for="newPassword">New Password</label>
+            <input type="password" class="form-control" id="newPassword" name="new_password" required>
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword">Confirm New Password</label>
+            <input type="password" class="form-control" id="confirmPassword" name="confirm_password" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Personal info Section Begin -->
+<section class="checkout spad">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-3">
+        <div class="path">
+          <div class="l">
+            <a href="/profile">Personal Information</a>
+          </div>
+          <p class="text-secondary text-muted">____________________________</p>
+          <div>
+            <a href="/myorders">My Orders</a>
+          </div>
+          <p class="text-secondary text-muted">____________________________</p>
+          <div>
+            <a href="/address" style="color: red;">Address</a>
+          </div>
+          <p class="text-secondary text-muted">____________________________</p>
+          <div>
+            <a href="/Wallet">Wallet</a>
+
+          </div>
+          <p class="text-secondary text-muted">____________________________</p>
+          <div>
+            <a href="/coupons" >My Coupons</a>
+          </div>
+          <p class="text-secondary text-muted">____________________________</p>
+          <div>
+            <a href="#" id="changePasswordBtn">Change Password</a>
+          </div>
+          <p class="text-secondary text-muted">____________________________</p>
+          <div>
+            <a href="/refferal">Referral</a>
+          </div>
+          <p class="text-secondary text-muted">____________________________</p>
+        </div>
+      </div>
+      <div class="col-lg-9">
+        <h5 style="text-align: center; font-weight: bold;">Add New Address</h5>
+        <hr>
         <form id="addAddressForm" action="/add-address" method="POST">
           <div class="form-group">
             <% if (messages.success) { %>
@@ -19,25 +133,25 @@
                 <%= messages.success %>
               </div>
             <% } %>
-    
+
             <% if (messages.error) { %>
               <div class="alert alert-danger flash-message" role="alert" style="color: red;" data-timeout="5">
                 <%= messages.error %>
               </div>
             <% } %>
-            <input type="text" class="form-control" id="pincode" name="pincode"  placeholder="Pincode">
+            <input type="text" class="form-control" id="pincode" name="pincode" placeholder="Pincode">
           </div>
           <div class="form-group">
-            <input type="text" class="form-control" id="locality" name="locality"  placeholder="Locality">
+            <input type="text" class="form-control" id="locality" name="locality" placeholder="Locality">
           </div>
           <div class="form-group">
-            <input type="text" class="form-control" id="address" name="address"  placeholder="Address (Area/Street)">
+            <input type="text" class="form-control" id="address" name="address" placeholder="Address (Area/Street)">
           </div>
           <div class="form-group">
-            <input type="text" class="form-control" id="city" name="city"  placeholder="City/District/Town">
+            <input type="text" class="form-control" id="city" name="city" placeholder="City/District/Town">
           </div>
           <div class="form-group">
-            <input type="text" class="form-control" id="state" name="state"  placeholder="State">
+            <input type="text" class="form-control" id="state" name="state" placeholder="State">
           </div>
           <div class="form-group">
             <label for="addresstype">Address Type</label><br>
@@ -53,5 +167,90 @@
       </div>
     </div>
   </div>
-</div>
+</section>
+<!-- Personal info Section End -->
+
 <%- include('../layouts/footer') %>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Include SweetAlert -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Include jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Custom CSS to remove dropdown arrow and adjust dropdown menu position -->
+<style>
+  .dropdown-container {
+    position: relative;
+  }
+</style>
+
+<!-- Custom JavaScript to handle the modal trigger -->
+<script>
+$(document).ready(function () {
+  $('#changePasswordBtn').click(function () {
+    $('#changePasswordModal').modal('show');
+  });
+});
+
+function deleteAddress(addressId) {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You are about to delete this address. This action cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          url: `/delete-address/${addressId}`,
+          type: 'DELETE',
+          success: function(response) {
+            Swal.fire(
+              'Deleted!',
+              'The address has been deleted successfully.',
+              'success'
+            );
+           $(`li[data-address-id="${addressId}"]`).remove();
+         },
+         error: function(xhr, status, error) {
+           Swal.fire(
+             'Error',
+             'An error occurred while deleting the address.',
+             'error'
+           );
+           console.error('Error deleting address:', error);
+         }
+       });
+     }
+   });
+ }
+
+ // Show/hide dropdown on hover
+ const dropdownContainers = document.querySelectorAll('.dropdown-container');
+ dropdownContainers.forEach(container => {
+   const dropdownToggle = container.querySelector('.dropdown-toggle-no-arrow');
+   const dropdownMenu = container.querySelector('.dropdown-menu');
+
+   dropdownToggle.addEventListener('mouseover', () => {
+     dropdownMenu.style.display = 'block';
+   });
+
+   dropdownToggle.addEventListener('mouseout', () => {
+     dropdownMenu.style.display = 'none';
+   });
+
+   dropdownMenu.addEventListener('mouseover', () => {
+     dropdownMenu.style.display = 'block';
+   });
+
+   dropdownMenu.addEventListener('mouseout', () => {
+     dropdownMenu.style.display = 'none';
+   });
+ });
+</script>

@@ -69,11 +69,32 @@ adminRoute.put('/updateProduct/:id',productsUpload,adminController.updateProduct
 
 
 
+adminRoute.get('/sales-report',adminController.renderSalesReport)
+adminRoute.get('/downloadsalesreport',adminController.downloadSalesReport)
+adminRoute.get('/coupons',adminController.renderCoupons)
+adminRoute.post('/addCoupon',adminController.addCoupons)
+adminRoute.delete('/removeCoupon/:couponId',adminController.removeCoupon)
+
+
+
 
 
 
 adminRoute.get('/orders',adminController.renderOrders)
-adminRoute.post('/updateOrderStatus',adminController.updateOrderStatus)
+adminRoute.post('/updateProductStatus',adminController.updateOrderStatus)
 adminRoute.get('/orderDetails',adminController.orderDetails)
+
+
+adminRoute.get('/product-offers',adminController.renderOffers)
+adminRoute.get('/category-offers',adminController.renderCategoryOffer)
+adminRoute.get('/addCategoryOffer',adminController.renderAddCategoryOffer)
+adminRoute.post('/addCategoryOffer',adminController.AddCategoryOffer)
+adminRoute.delete('/removeCategoryOffer/:offerId',adminController.removeCategoryOffer)
+adminRoute.get('/addOffer',adminController.addOffer);
+adminRoute.post('/addProductOffer',adminController.addProductOffer)
+adminRoute.delete('/removeProductOffer/:offerId',adminController.removeProductOffer)
+adminRoute.get('/api/dashboard',adminController.generateData)
+adminRoute.get('/return',adminController.renderReturnRequest)
+adminRoute.post('/acceptReturn', adminController.acceptReturn);
 
 module.exports = adminRoute

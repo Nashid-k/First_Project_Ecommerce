@@ -52,7 +52,8 @@
                                                 <span>No product information available</span>
                                             <% } %>
                                         </td>
-                                        <td class="cart__price">₹ <span class="price" data-price="<%= cartItem.product[0].price %>"><%= cartItem.product[0].price %></span></td>
+                                        <td class="cart__price">₹ <span class="price" data-price="<%= cartItem.product[0].price %>"><%= cartItem.product[0].totalPrice.toFixed(2) %></span></td>                                      
+                                        
                                         <td class="cart__quantity">
                                             <div class="quantity-wrapper" style="display: flex; align-items: center;">
                                                 <div class="quantity-btn minus-btn" data-product-id="<%= cartItem.product[0].productId %>" style="padding: 5px 10px; font-weight: bold; cursor: pointer;">-</div>
@@ -60,7 +61,7 @@
                                                 <div class="quantity-btn plus-btn" data-product-id="<%= cartItem.product[0].productId %>" style="padding: 5px 10px; font-weight: bold; cursor: pointer;">+</div>
                                             </div>
                                         </td>
-                                        <td class="cart__total" id="cart__total_<%= cartItem.product[0].productId %>">₹ <span class="total" data-id="<%= cartItem.product[0].productId %>"><%= (cartItem.product[0].price * cartItem.product[0].quantity).toFixed(2) %></span></td>
+                                         <td class="cart__total" id="cart__total_<%= cartItem.product[0].productId %>">₹ <span class="total" data-id="<%= cartItem.product[0].productId %>"><%= (cartItem.product[0].totalPrice * cartItem.product[0].quantity).toFixed(2) %></span></td>
                                         <td class="cart__close">
                                             <a href="#" class="remove-btn" data-product-id="<%= cartItem.product[0].productId._id %>">
                                                 <span class="icon_close"></span>
@@ -86,7 +87,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-lg-6">
+            <!-- <div class="col-lg-6">
                 <div class="discount__content">
                     <h6>Discount codes</h6>
                     <form action="#">
@@ -94,8 +95,8 @@
                         <button type="submit" class="site-btn">Apply</button>
                     </form>
                 </div> 
-            </div>
-            <div class="col-lg-4 offset-lg-2">
+            </div> -->
+            <div class="col-lg-4 offset-lg-8">
                 <div class="cart__total__procced">
                     <h6>Cart total</h6>
                     <ul>

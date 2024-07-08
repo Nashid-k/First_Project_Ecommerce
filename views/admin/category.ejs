@@ -16,7 +16,7 @@
           <thead>
             <tr>
               <th>Name</th>
-              <th>Image</th>
+              <!-- <th>Image</th> -->
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -25,9 +25,9 @@
             <% categoryData.forEach((category, index) => { %>
               <tr id="categoryRow-<%= category._id %>">
                 <td><%= category.name %></td>
-                <td>
+                <!-- <td>
                   <img src="<%= process.env.BASE_URL %>/uploads/category/<%= category.categoryImage %>" alt="<%= category.name %> category image" width="50" height="70">
-                </td>
+                </td> -->
                 <td>
                   <span id="status-<%= category._id %>" class="badge <%= category.is_listed ? 'bg-success' : 'bg-secondary' %>">
                     <%= category.is_listed  ? 'Listed' : 'Unlisted' %>

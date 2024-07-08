@@ -10,7 +10,7 @@ is_listed:{
 },
 categoryImage:{
    type:String,
-   required:true
+ 
 }
 },{timestamps:true})
 

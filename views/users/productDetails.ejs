@@ -1,16 +1,108 @@
-<%-include('../layouts/header')  %>
+<%- include('../layouts/header') %>
 
 <style>
-    /* CSS to adjust image size */
-    .product__details__pic img {
-        max-width: 100%;
-        height: auto;
+.product__details__price .discounted-price {
+    color: #ca1515;
+    text-decoration: none;
+}
+
+.owl-nav {
+    display: none !important;
+}
+
+.product__details__pic {
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.product__big__img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    transition: transform 0.3s ease;
+}
+
+.product__big__img:hover {
+    transform: scale(1.02);
+}
+
+.product__details__pic__left {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 614px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.product__details__pic__left img {
+    max-width: 100%;
+    height: auto;
+    border: 2px solid #e5e5e5;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+.product__details__pic__left img:hover {
+    border-color: #333;
+}
+
+.product__details__pic__left img.active {
+    border-color: #007bff;
+}
+
+.product__details__slider__content {
+    display: flex;
+    gap: 20px;
+}
+
+.product__details__pic__left {
+    flex: 0 0 80px;
+}
+
+.product__details__pic__slider {
+    flex: 1;
+}
+
+.zoomContainer {
+    z-index: 9999;
+}
+
+select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    width: 20%;
+    margin-bottom: 10px;
+    background-color: #fff;
+    color: #333;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .product__details__slider__content {
+        flex-direction: column-reverse;
     }
 
-    .product__big__img {
-        max-width: 100%;
-        height: auto;
+    .product__details__pic__left {
+        flex-direction: row;
+        overflow-x: auto;
+        max-height: none;
+        padding-right: 0;
+        margin-top: 10px;
     }
+
+    .product__details__pic__left img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+    }
+}
 </style>
 
 <div class="breadcrumb-option">
@@ -35,10 +127,9 @@
                     <div class="product__details__pic__left product__thumb nice-scroll">
                         <% if (product.screenshots && product.screenshots.length > 0) { %>
                             <% product.screenshots.slice(0, 4).forEach((screenshot, index) => { %>
-                                <img class="pt <%= index === 0 ? 'active' : '' %>" src="/uploads/products/<%= screenshot %>" alt="">
+                                <img id="thumb-<%= index %>" class="pt <%= index === 0 ? 'active' : '' %>" src="/uploads/products/<%= screenshot %>" alt="">
                             <% }); %>
                         <% } else { %>
-                            <!-- Display a placeholder image or message when no images are available -->
                             <img class="pt" src="/path/to/placeholder-image.jpg" alt="No Image Available">
                         <% } %>
                     </div>
@@ -46,19 +137,16 @@
                         <div class="product__details__pic__slider owl-carousel">
                             <% if (product.screenshots && product.screenshots.length > 0) { %>
                                 <% product.screenshots.forEach((screenshot, index) => { %>
-                                    <img data-hash="product-<%= index + 1 %>" class="product__big__img" src="/uploads/products/<%= screenshot %>" alt="">
+                                    <img data-hash="product-<%= index + 1 %>" class="product__big__img zoom-img" id="zoom_01" src="/uploads/products/<%= screenshot %>" data-zoom-image="/uploads/products/<%= screenshot %>" alt="">
                                 <% }); %>
                             <% } else { %>
-                                <!-- Display a placeholder image or message when no images are available -->
-                                <img data-hash="product-1" class="product__big__img" src="/path/to/placeholder-image.jpg" alt="No Image Available">
+                                <img data-hash="product-1" class="product__big__img zoom-img" id="zoom_01" src="/path/to/placeholder-image.jpg" data-zoom-image="/path/to/placeholder-image.jpg" alt="No Image Available">
                             <% } %>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            
-            
+
             <div class="col-lg-6">
                 <div class="product__details__text">
                     <h3><%= product.name %></h3>
@@ -70,48 +158,31 @@
                         <i class="fa fa-star"></i>
                         <span>( 138 reviews )</span>
                     </div>
-                    <div class="product__details__price">₹ <%= product.price %></div>
-                    <p>Nemo enim ipsam voluptatem quia aspernatur aut odit aut loret fugit, sed quia consequuntur
-                        magni lores eos qui ratione voluptatem sequi nesciunt.</p>
-                    <div class= "product__details__button">
-                         <% if(product.quantity==0) {%>
+                    <div class="product__details__price">
+                        <% if (discountedPrice && parseFloat(discountedPrice) < product.price) { %>
+                            <span class="original-price" style="text-decoration: line-through; color: #999; margin-right: 10px;">₹ <%= product.price.toFixed(2) %></span>
+                            <span class="discounted-price" style="color: #ca1515;">₹ <%= discountedPrice %></span>
+                            <span class="discounted-price" style="font-size: 14px; color: #ca1515;">
+                                (<%= Math.round((1 - parseFloat(discountedPrice) / product.price) * 100) %>% off)
+                            </span>
+                        <% } else { %>
+                            ₹ <%= product.price.toFixed(2) %>
+                        <% } %>
+                    </div>
+                    
+                    <%= product.description %>
+                    <br><br>
+                    <div class="product__details__button">
+                        <% if (product.quantity == 0) { %>
                             <a href="#" class="cart-btn" style="background-color: black;"><span class="icon_bag_alt"></span> Out of stock</a>
-                            <% }else{ %>
-                                <a href="/addToCart?productId=<%= product._id %>" class="cart-btn"><span class="icon_bag_alt"></span> Add to cart</a>
-                            <% } %>
-                        <ul>
-                            <li><a href="#"><span class="icon_heart_alt"></span></a></li>
-                            <li><a href="#"><span class="icon_adjust-horiz"></span></a></li>
-                        </ul>
+                        <% } else { %>
+                            <a href="/addToCart?productId=<%= product._id %>" class="cart-btn"><span class="icon_bag_alt"></span> Add to cart</a>
+                        <% } %>
                     </div>
-                    <div class="product__details__widget">
-                        <ul>
-                            <li>
-                                <span>Available size:</span>
-                                <div class="size__btn">
-                                    
-                                    <label for="s-btn">
-                                        <input type="radio" id="s-btn">
-                                        s
-                                    </label>
-                                    <label for="m-btn">
-                                        <input type="radio" id="m-btn">
-                                        m
-                                    </label>
-                                    <label for="l-btn">
-                                        <input type="radio" id="l-btn">
-                                        l
-                                    </label>
-                                </div>
-                            </li>
-                            <li>
-                                <span>Promotions:</span>
-                                <p>Free shipping</p>
-                            </li>
-                        </ul>
-                    </div>
+                    <div class="product__details__widget"></div>
                 </div>
             </div>
+
             <div class="col-lg-12">
                 <div class="product__details__tab">
                     <ul class="nav nav-tabs" role="tablist">
@@ -132,34 +203,18 @@
                         </div>
                         <div class="tab-pane" id="tabs-2" role="tabpanel">
                             <h6>Specification</h6>
-                            <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut loret fugit, sed
-                                quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt loret.
-                                Neque porro lorem quisquam est, qui dolorem ipsum quia dolor si. Nemo enim ipsam
-                                voluptatem quia voluptas sit aspernatur aut odit aut loret fugit, sed quia ipsu
-                                consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Nulla
-                                consequat massa quis enim.</p>
-                            <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget
-                                dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes,
-                                nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium
-                                quis, sem.</p>
+                            <%= product.description %>
                         </div>
                         <div class="tab-pane" id="tabs-3" role="tabpanel">
                             <h6>Reviews ( 2 )</h6>
-                            <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut loret fugit, sed
-                                quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt loret.
-                                Neque porro lorem quisquam est, qui dolorem ipsum quia dolor si. Nemo enim ipsam
-                                voluptatem quia voluptas sit aspernatur aut odit aut loret fugit, sed quia ipsu
-                                consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Nulla
-                                consequat massa quis enim.</p>
-                            <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget
-                                dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes,
-                                nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium
-                                quis, sem.</p>
+                            <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut loret fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt loret. Neque porro lorem quisquam est, qui dolorem ipsum quia dolor si. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut loret fugit, sed quia ipsu consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Nulla consequat massa quis enim.</p>
+                            <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
         <div class="row">
             <div class="col-lg-12 text-center">
                 <div class="related__title">
@@ -170,50 +225,37 @@
     </div>
 </section>
 
-<%-include('../layouts/footer')  %>
+<%- include('../layouts/footer') %>
 
-
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdn.rawgit.com/igorlino/elevatezoom-plus/1.1.6/src/jquery.ez-plus.js"></script>
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
-    console.log("Document loaded"); 
+document.addEventListener("DOMContentLoaded", function() {
+    console.log("Document loaded");
 
     const thumbnailImages = document.querySelectorAll('.product__details__pic__left img.pt');
-    const mainImage = document.querySelector('.product__big__img');
+    const mainImage = document.querySelector('.product__big__img.zoom-img');
 
     thumbnailImages.forEach(function(thumbnail) {
-        thumbnail.addEventListener('click', function() {
-            console.log("Thumbnail clicked"); // Check if clicking on thumbnails triggers the event
-
+        thumbnail        .addEventListener('mouseover', function() {
             thumbnailImages.forEach(function(img) {
                 img.classList.remove('active');
             });
 
             thumbnail.classList.add('active');
 
-            console.log("Main image source:", thumbnail.src); // Check if the main image source is being updated correctly
-            mainImage.src = thumbnail.src;
+            const newSrc = thumbnail.src;
+            const newZoomImage = thumbnail.getAttribute('data-zoom-image');
+            mainImage.src = newSrc;
+            mainImage.setAttribute('data-zoom-image', newZoomImage);
 
-            $('.zoomImg').attr('src', thumbnail.src);
-
-            console.log("Zoom image source updated");
-
-            $('.product__big__img').trigger('zoom.destroy').zoom({
-                on: 'mouseover',
-                magnify: 1.5
+            $(mainImage).ezPlus({
+                scrollZoom: true
             });
-
-            console.log("Zoom initialized");
         });
     });
 
-    $('.product__big__img').zoom({
-        on: 'mouseover',
-        zoomWidth: 400,
-        tint: "#333",
-        Xoffset: 15
-    });
-
-    console.log("Zoom initialized for main image");
+    console.log("Image switching initialized");
 });
-
 </script>
+

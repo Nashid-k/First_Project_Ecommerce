@@ -1,22 +1,187 @@
 <%- include('../layouts/header') %>
-<%- include('../layouts/sidebar') %>
 
-<div class="content">
-  <div class="container mt-5">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb" style="background-color: white;">
-        <li class="breadcrumb-item"><a href="/">Home</a></li>
-  
-        <li class="breadcrumb-item active" aria-current="page">My orders</li>
-      </ol>
-    </nav>
-    <h2>Your Orders</h2>
+<style>
+  .path a {
+    margin-bottom: 5px;
+    color: #000;
+    text-decoration: none;
+  }
+
+  .path a:hover {
+    color: red;
+    transition-duration: 0.6s;
+  }
+
+  .path {
+    font-family: Montserrat, sans-serif;
+    font-size: 19px;
+    text-align: left;
+    margin-right: auto;
+    margin-top: 10px;
+  }
+
+  .checkout_form_input input[type="date"] {
+    cursor: pointer;
+  }
+
+  .gender-inputs input[type="radio"] {
+    cursor: pointer;
+  }
+
+  .align-right-btn {
+    float: right;
+  }
+
+  .breadcrumb__links a {
+    margin-right: 5px;
+    text-decoration: none;
+    color: #000;
+  }
+
+  .breadcrumb__links a:hover {
+    color: red;
+  }
+
+  .order-item img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .status-label {
+    color: #fff;
+    padding: 5px;
+    border-radius: 3px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.status-label.pending {
+    background-color: #ffc107; /* Yellow */
+    color: #333; /* Dark text color for contrast */
+}
+
+.status-label.confirmed {
+    background-color: #0d6efd; /* Blue */
+    color: #fff;
+}
+
+.status-label.shipped,
+.status-label.delivered {
+    background-color: #198754; /* Green */
+    color: #fff;
+}
+
+.status-label.cancelled {
+    background-color: #dc3545; /* Red */
+    color: #fff;
+}
+
+.status-label.returned {
+    background-color: #dc3545; /* Red */
+    color: #fff;
+}
+
+</style>
+</head>
+<body>
+
+<!-- Breadcrumb Begin -->
+<div class="breadcrumb-option">
+  <div class="container">
     <div class="row">
-      <div class="col-lg-9">
-        <% if (orderData && orderData.length > 0) { %>
-          <% orderData.forEach(order => { %>
-            <% order.orderedItem.forEach(item => { %>
-              <a href="/orderDetails/<%= order._id %>" style="text-decoration: none;">
+      <div class="col-lg-12">
+        <div class="breadcrumb__links">
+          <a href="/"><i class="fa fa-home"></i> Home</a>
+          <a href="#"><i></i><i></i>  <span>My Orders</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Breadcrumb End -->
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" role="dialog" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="/change-password" method="post">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="currentPassword">Current Password</label>
+            <input type="password" class="form-control" id="currentPassword" name="current_password" required>
+          </div>
+          <div class="form-group">
+            <label for="newPassword">New Password</label>
+            <input type="password" class="form-control" id="newPassword" name="new_password" required>
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword">Confirm New Password</label>
+            <input type="password" class="form-control" id="confirmPassword" name="confirm_password" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Personal Info and Orders Section Begin -->
+<section class="checkout spad">
+  <div class="container">
+    <div class="row">
+      <!-- Sidebar Navigation -->
+      <div class="col-lg-4">
+        <div class="path">
+          <div class="l">
+            <a href="/profile">Personal Information</a>
+          </div>
+          <p class="text-secondary text-muted">____________________________</p>
+          <div>
+            <a href="/myorders" style="color: red;">My Orders</a>
+          </div>
+          <p class="text-secondary text-muted">____________________________</p>
+          <div>
+            <a href="/address">Address</a>
+          </div>
+          <p class="text-secondary text-muted">____________________________</p>
+          <div>
+            <a href="/wallet">Wallet</a>
+          </div>
+          <p class="text-secondary text-muted">____________________________</p>
+          <div>
+            <a href="/coupons">My Coupons</a>
+          </div>
+          <p class="text-secondary text-muted">____________________________</p>
+          <div>
+            <a href="#" id="changePasswordBtn">Change Password</a>
+          </div>
+          <p class="text-secondary text-muted">____________________________</p>
+          <div>
+            <a href="/refferal">Referral</a>
+          </div>
+          <p class="text-secondary text-muted">____________________________</p>
+        </div>
+      </div>
+
+      <!-- Personal Information and Orders Content -->
+      <div class="col-lg-8">
+        <h5 class="d-flex justify-content-center" style="font-weight: bold;">Your Orders</h5>
+        <br>
+        <hr>
+        <br>
+        <div class="orders">
+          <% if (orderData && orderData.length > 0) { %>
+            <% orderData.forEach(order => { %>
+              <% order.orderedItem.forEach(item => { %>
                 <div class="order-item border rounded p-3 mb-3">
                   <div class="row">
                     <div class="col-md-3">
@@ -24,57 +189,48 @@
                     </div>
                     <div class="col-md-9">
                       <h4><%= item.productId.name %></h4>
-                      <p>Price: ₹ <%= item.totalProductAmount %></p>
-                      <p> <span class="badge status-label <%= order.orderStatus.toLowerCase() %>" style="color: white;"><%= order.orderStatus %></span></p>
+                      <p>Price: ₹ <%= item.totalProductAmount%></p>
+                      <p>
+                        <span class="badge status-label <%= order.paymentStatus ? item.status.toLowerCase() : 'pending' %>">
+                          <%= order.paymentStatus ? item.status : 'Payment Pending' %>
+                      </span>
+                      
+                      </p>
+                      <p>
+                        <strong>Order Date:</strong> <%= order.orderDate.toLocaleDateString() %>
+                      </p>
+                      <p>
+                        <strong>Delivery Address:</strong> <%= order.deliveryAddress.address %>, <%= order.deliveryAddress.locality %>, <%= order.deliveryAddress.city %> - <%= order.deliveryAddress.pincode %>
+                      </p>
+                      <a href="/orderDetails/?productId=<%= item.productId._id %>" class="btn btn-primary">View Details</a>
+
+
                     </div>
                   </div>
                 </div>
-              </a>
+              <% }); %>
             <% }); %>
-          <% }); %>
-        <% } else { %>
-          <li class="list-group-item" style="color: #000; padding: 20px;">No orders yet.</li>
-        <% } %>
+          <% } else { %>
+            <li class="list-group-item" style="color: #000; padding: 20px;">No orders yet.</li>
+          <% } %>
+        </div>
       </div>
     </div>
   </div>
-</div>
+</section>
+<!-- Personal Info and Orders Section End -->
 
 <%- include('../layouts/footer') %>
 
-<style>
-  .status-label.pending {
-    background-color: #ffc107; /* Yellow */
-  }
-  .status-label.confirmed {
-    background-color: #0d6efd; /* Blue */
-  }
-  .status-label.shipped,
-  .status-label.delivered {
-    background-color: #198754; /* Green */
-  }
-  .status-label.cancelled {
-    background-color: #dc3545; /* Red */
-  }
-</style>
+<!-- Include jQuery and Bootstrap JavaScript at the end of the body to ensure they are loaded after the DOM is ready -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<style>
-/* Additional CSS for responsiveness */
-@media (max-width: 992px) {
-  .col-md-3 {
-    flex: 0 0 25%;
-    max-width: 25%;
-  }
-  .col-md-9 {
-    flex: 0 0 75%;
-    max-width: 75%;
-  }
-}
-
-@media (max-width: 768px) {
-  .col-md-3, .col-md-9 {
-    flex: 0 0 100%;
-    max-width: 100%;
-  }
-}
-</style>
+<!-- Custom JavaScript to handle the modal trigger -->
+<script>
+  $(document).ready(function () {
+    $('#changePasswordBtn, #changePasswordBtnSidebar').click(function () {
+      $('#changePasswordModal').modal('show');
+    });
+  });
+</script>

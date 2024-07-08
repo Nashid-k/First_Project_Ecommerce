@@ -1,0 +1,188 @@
+<%- include('../layouts/header') %>
+
+<!-- Breadcrumb Begin -->
+<div class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__links">
+                    <a href="/"><i class="fa fa-home"></i> Home</a>
+                    <span>Wishlist</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Breadcrumb End -->
+
+<!-- Wishlist Section Begin -->
+<section class="wishlist spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="wishlist__table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (wishlistItems && wishlistItems.length > 0) { %>
+                                <% wishlistItems.forEach(wishlistItem => { %>
+                                    <tr data-productId="<%= wishlistItem.product[0].productId._id %>">
+                                        <td class="wishlist__product__item">
+                                            <% if (wishlistItem.product && wishlistItem.product[0] && wishlistItem.product[0].productId) { %>
+                                                <img src="/uploads/products/<%= wishlistItem.product[0].productId.mainImage %>" alt="">
+                                                <div class="wishlist__product__item__title">
+                                                    <h6><%= wishlistItem.product[0].productId.name %></h6>
+                                                </div>
+                                            <% } else { %>
+                                                <span>No product information available</span>
+                                            <% } %>
+                                        </td>
+                                        <td class="wishlist__price">₹ <span class="price" data-price="<%= wishlistItem.product[0].price %>"><%= wishlistItem.product[0].productId.price %></span></td>
+                                        <td class="wishlist__cart">
+                                            <button class="add-to-cart-btn" onclick="location.href='/addToCart?productId=<%=wishlistItem.product[0].productId._id %>'">Add to Cart</button>
+                                            <button class="remove-from-wishlist-btn" data-productId="<%= wishlistItem.product[0].productId._id %>">Remove</button>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="3">Your wishlist is empty</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Wishlist Section End -->
+
+<%- include('../layouts/footer') %>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.remove-from-wishlist-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const productId = this.getAttribute('data-productId');
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `/removeFromWishlist?productId=${productId}`,
+                            type: 'GET',
+                            success: function (response) {
+                                Swal.fire(
+                                    'Deleted!',
+                                    'Your item has been removed from the wishlist.',
+                                    'success'
+                                ).then(() => {
+                                    location.reload();
+                                });
+                            },
+                            error: function (error) {
+                                Swal.fire(
+                                    'Error!',
+                                    'There was an error removing the item from the wishlist.',
+                                    'error'
+                                );
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    });
+</script>
+
+<style>
+    /* Wishlist Table Styles */
+    .wishlist__table {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .wishlist__table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .wishlist__table th,
+    .wishlist__table td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .wishlist__table th {
+        background-color: #f5f5f5;
+        font-weight: bold;
+    }
+
+    .wishlist__product__item {
+        display: flex;
+        align-items: center;
+    }
+
+    .wishlist__product__item img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        margin-right: 15px;
+    }
+
+    .wishlist__product__item__title h6 {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .wishlist__price {
+        font-weight: bold;
+    }
+
+    .wishlist__cart button {
+        background-color: #333;
+        color: #fff;
+        border: none;
+        padding: 10px 15px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .wishlist__cart button:hover {
+        background-color: #555;
+    }
+
+    .wishlist__cart .add-to-cart-btn {
+        margin-right: 10px;
+    }
+
+    /* Toastr Styles */
+    #toast-container > .toast {
+        background-color: #333;
+        color: #fff;
+        width: 400px !important;
+        min-height: 40px !important;
+        font-size: 16px !important;
+    }
+</style>

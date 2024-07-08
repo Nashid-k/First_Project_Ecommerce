@@ -1,174 +1,431 @@
 <%- include('../layouts/header') %>
 
 <style>
-    .checkout__address__details {
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px;
-  margin-bottom: 10px;
-  background-color: #f5f5f5;
+  .checkout__address__details {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #f5f5f5;
+    position: relative;
+  }
+  .checkout__address__details.active {
+    background-color: lightblue;
+    color: black;
+  }
+  .address-buttons {
+    position: absolute;
+    top: 70px;
+    right: 10px;
+  }
+  .strikethrough {
+    text-decoration: line-through;
+    color: red;
+  }
+  .order-section{
+    margin-top: -10rem;
+  }
+  .site-btn1 {
+    background-color: rgb(172, 20, 20);
+    color: white;
+    border: none;
+    border-radius: 20px; /* Adjust the value to change the curvature */
+    padding: 10px 20px; /* Adjust padding as needed */
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Add transition for smooth effect */
 }
 </style>
+
+<!-- Include SweetAlert CSS and JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.all.min.js"></script>
+
 <!-- Breadcrumb Begin -->
 <div class="breadcrumb-option">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-12">
-          <div class="breadcrumb__links">
-            <a href="/"><i class="fa fa-home"></i> Home</a>
-            <a href="/cart">Shopping cart</a>
-            <span>Checkout</span>
-          </div>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="breadcrumb__links">
+          <a href="/"><i class="fa fa-home"></i> Home</a>
+          <a href="/cart">Shopping cart</a>
+          <span>Checkout</span>
         </div>
       </div>
     </div>
   </div>
-  <!-- Breadcrumb End -->
-  
-  <!-- Checkout Section Begin -->
-  <section class="checkout spad">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-12">
-          <h6 class="coupon__link"><span class="icon_tag_alt"></span> <a href="#">Have a coupon?</a> Click here to enter your code.</h6>
-        </div>
-      </div>
-      <form action="/placeOrder" class="checkout__form" method="post">
-        <div class="row">
-          <div class="col-lg-8">
-            <h5>Address</h5>
-            <div class="checkout__address">
-              <% if (messages.success) { %>
-                <div class="alert alert-success" role="alert" style="color: green;">
+</div>
+<!-- Breadcrumb End -->
+
+<!-- Checkout Section Begin -->
+<section class="checkout spad">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <form id="couponForm">
+          <div class="checkout__coupon">
+              <h5 style="font-weight: 600;">COUPON CODE</h5>
+              <br>
+              <input type="text" id="couponCode" name="couponCode" placeholder="Enter your coupon code" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+              <button type="button" class="site-btn1" onclick="applyCoupon()">Apply</button>
+          </div>
+      </form>
+      
+        <br><br>
+        <form action="/placeOrder" class="checkout__form" method="post">
+          <div class="row">
+            <div class="col-lg-8">
+              <h5>Address</h5>
+              <div class="checkout__address">
+                <% if (messages.success) { %>
+                  <div class="alert alert-success" role="alert" style="color: green;">
                     <%= messages.success %>
-                </div>
+                  </div>
                 <% } %>
 
                 <% if (messages.error) { %>
-                <div class="alert alert-danger" role="alert" style="color: red;">
+                  <div class="alert alert-danger" role="alert" style="color: red;">
                     <%= messages.error %>
-                </div>
-                <% } %>
-              <% if (addressData.length > 0) { %>
-                <% addressData.forEach((address, index) => { %>
-                  <div class="checkout__address__details" id="address<%= address._id %>">
-                    <input type="radio" name="selectedAddress" value="<%= address._id %>" />
-                    <div class="address-option">
-                        <p><span style="font-weight: bold; color: #000;"><%= userData.name %></span> <span class="status-indicator-pill <%= address.addresstype === 'work'? 'badge badge-pill badge-secondary' : 'badge badge-pill badge-secondary' %>" style="margin-left: 10px; padding: 5px 10px;"><%= address.addresstype === 'work'? 'Work' : 'Home' %></span></p>
-                      <p class="mb-0"><%= userData.name %>,<%= userData.mobile %>,<%= address.address %>,<%= address.locality %>,<%= address.city %>,<%= address.pincode %>,</p>
-                    </div>
                   </div>
-                <% }); %>
-              <% } else { %>
-                <p>No addresses available. Please add an address.</p>
-              <% } %>
-              <button class="btn btn-primary" id="editAddressBtn" onclick="navigateToAddAddress()">Add Address</button>
-            </div>
-          </div>
-          <div class="col-lg-4">
-            <div class="checkout__order">
-              <h5>Your Order</h5>
-              <div class="checkout__order__product">
-                <ul class="checkout__order__product__list">
-                  <% cartItems.forEach(cartItem => { %>
-                    <% cartItem.product.forEach(product => { %>
-                      <li class="checkout__order__product__item">
-                        <!-- <div class="checkout__order__product__item__img-frame">
-                          <img class="checkout__order__product__item__img" src="/uploads/products/<%= product.productId.mainImage %>" alt="<%= product.productId.name %>">
-                        </div> -->
-                        <div class="checkout__order__product__item__details">
-                          <div class="checkout__order__product__item__name">Name: <%= product.productId.name %></div>
-                          <div class="checkout__order__product__item__price">Price: ₹ <%= (product.price * product.quantity).toFixed(2) %></div>
-                          <div class="checkout__order__product__item__quantity">Quantity: <%= product.quantity %></div>
-                        </div>
-                      </li>
-                    <% }); %>
+                <% } %>
+
+                <% if (addressData.length > 0) { %>
+                  <% addressData.forEach((address, index) => { %>
+                    <div class="checkout__address__details" id="address<%= address._id %>">
+                      <input type="radio" name="selectedAddress" value="<%= address._id %>" />
+                      <div class="address-option">
+                        <p>
+                          <span style="font-weight: bold; color: #000;"><%= userData.name %></span>
+                          <span class="status-indicator-pill <%= address.addresstype === 'work' ? 'badge badge-pill badge-secondary' : 'badge badge-pill badge-secondary' %>" style="margin-left: 10px; padding: 5px 10px;">
+                            <%= address.addresstype === 'work' ? 'Work' : 'Home' %>
+                          </span>
+                        </p>
+                        <p class="mb-0"><%= userData.name %>,<%= userData.mobile %>,<%= address.address %>,<%= address.locality %>,<%= address.city %>,<%= address.pincode %>,</p>
+                      </div>
+                      <div class="address-buttons">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeAddress('<%= address._id %>')">Remove</button>
+                      </div>
+                    </div>
                   <% }); %>
-                </ul>
-              </div>
-              <div class="checkout__order__total">
-                <ul>
-                  <li>Subtotal <span>₹ <%= subtotal.toFixed(2) %></span></li>
-                  <li>Total <span>₹ <%= total.toFixed(2) %></span></li>
-                </ul>
-              </div>
-              <!-- Payment Method -->
-              <div class="checkout__payment-method">
-                <h5>Payment Method</h5>
-<!-- Cash on Delivery -->
-<input type="radio" id="cashOnDelivery" name="paymentMethod" value="cashOnDelivery">
-<label for="cashOnDelivery">
-  <img width="34" height="34" src="https://img.icons8.com/external-flaticons-lineal-color-flat-icons/64/external-cash-on-delivery-web-store-flaticons-lineal-color-flat-icons.png" alt="external-cash-on-delivery-web-store-flaticons-lineal-color-flat-icons"/>
-  COD
-</label>
-<br>
+                <% } else { %>
+                  <p>No addresses available. Please add an address.</p>
+                <% } %>
+                <button class="btn btn-primary" id="editAddressBtn" onclick="navigateToAddAddress()">Add Address</button>
 
-<!-- Wallet -->
-<input type="radio" id="wallet" name="paymentMethod" value="wallet">
-<label for="wallet">
-  <img width="34" height="34" src="https://img.icons8.com/3d-fluency/94/card-wallet.png" alt="card-wallet"/>
-  Wallet
-</label>
-<br>
-
-<!-- Razor Pay -->
-<!-- <input type="radio" id="razorPay" name="paymentMethod" value="razorPay">
-<label for="razorPay">
- <img src="/" width="34" height="34" alt="">
-  Razor Pay
-</label> -->
+<br><br>
 
               </div>
-              <!-- End Payment Method -->
-              <button type="submit" class="site-btn">Place Order</button>
+            </div>
+            <div class="col-lg-4 order-section">
+              <div class="checkout__order">
+                <h5>Your Order</h5>
+                <div class="checkout__order__product">
+                  <ul class="checkout__order__product__list">
+                    <% cartItems.forEach(cartItem => { %>
+                      <% cartItem.product.forEach(product => { %>
+                        <li class="checkout__order__product__item">
+                          <div class="checkout__order__product__item__details">
+                            <div class="checkout__order__product__item__name">Name: <%= product.productId.name %></div>
+                            <div class="checkout__order__product__item__price">Price: ₹ <%= (product.price * product.quantity).toFixed(2) %></div>
+                            <div class="checkout__order__product__item__quantity">Quantity: <%= product.quantity %></div>
+                          </div>
+                        </li>
+                      <% }); %>
+                    <% }); %>
+                  </ul>
+                </div>
+                <div class="checkout__order__total">
+                  <ul>
+                    <li>Subtotal <span>₹ <%= subtotal.toFixed(2) %></span></li>
+                    <li>Discount <span id="discount">₹ 0</span></li>
+                    <li class="<%= deliveryCharge === 0 ? 'strikethrough' : '' %>" >Delivery Charge 
+                      <span id="deliveryCharge">
+                        <% if (deliveryCharge === 0) { %>
+                          <span style="color: green;">Free Delivery</span>
+                        <% } else { %>
+                          ₹ <%= deliveryCharge.toFixed(2) %>
+                        <% } %>
+                      </span>
+                    </li>
+                    
+                    <li>Total <span id="totalAmount">₹ <%= total.toFixed(2) %></span></li>
+                  </ul>
+                </div>
+                
+                <!-- Payment Method -->
+                <div class="checkout__payment-method">
+                  <h5>Payment Method</h5>
+                  <!-- Cash on Delivery -->
+                  <input type="radio" id="cashOnDelivery" name="paymentMethod" value="cashOnDelivery">
+                  <label for="cashOnDelivery" id="codLabel">
+                    <img width="34" height="34" src="https://img.icons8.com/external-flaticons-lineal-color-flat-icons/64/external-cash-on-delivery-web-store-flaticons-lineal-color-flat-icons.png" alt="external-cash-on-delivery-web-store-flaticons-lineal-color-flat-icons"/>
+                    COD
+                  </label>
+                  <br>
+
+                  <!-- Wallet -->
+                  <input type="radio" id="wallet" name="paymentMethod" value="wallet">
+                  <label for="wallet">
+                    <img width="34" height="34" src="https://img.icons8.com/3d-fluency/94/card-wallet.png" alt="card-wallet"/>
+                    Wallet
+                  </label>
+                  <br>
+                  
+                  <!-- Razorpay -->
+                  <input type="radio" id="razorpay" name="paymentMethod" value="razorpay">
+                  <label for="razorpay">
+                    <a href="https://razorpay.com/" target="_blank"> <img referrerpolicy="origin" src = "https://badges.razorpay.com/badge-dark.png " style = "height: 34px; width: 40px;" alt = "Razorpay | Payment Gateway | Neobank"></a>                Razorpay
+                  </label>
+                </div>
+                
+                <!-- End Payment Method -->
+                <button type="submit" class="site-btn">Place Order</button>
+              </div>
             </div>
           </div>
-        </div>
-      </form>
+        </form>
+      
+      </div>
     </div>
-  </section>
-  <!-- Checkout Section End -->
-  
-  <%- include('../layouts/footer') %>
+  </div>
+</section>
+<!-- Checkout Section End -->
 
 <%- include('../layouts/footer') %>
-
-
-
-
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
-
-
-
-  function navigateToAddAddress() {
-    event.preventDefault(); 
-    window.location.href = '/addNewAddress'; 
-  }
-
   document.addEventListener('DOMContentLoaded', function() {
     const addressDetails = document.querySelectorAll('.checkout__address__details');
-
     addressDetails.forEach(function(addressDetail) {
-      addressDetail.addEventListener('click', function(event) {
-        event.preventDefault();
-        toggleActive(addressDetail);
-      });
+        addressDetail.addEventListener('click', function(event) {
+            event.preventDefault();
+            toggleActive(addressDetail);
+        });
     });
-  });
 
-  function toggleActive(element) {
+    checkTotalAmount();
+
+    document.querySelector('.site-btn').addEventListener('click', handlePlaceOrder);
+});
+
+function toggleActive(element) {
     const addressDetails = document.querySelectorAll('.checkout__address__details');
     addressDetails.forEach(function(addressDetail) {
-      addressDetail.classList.remove("active");
-      addressDetail.style.backgroundColor = "";
-      addressDetail.style.color = "";
-      addressDetail.querySelector('input[type=radio]').checked = false;
+        addressDetail.classList.remove("active");
+        addressDetail.style.backgroundColor = "";
+        addressDetail.style.color = "";
+        addressDetail.querySelector('input[type=radio]').checked = false;
     });
 
     element.classList.add("active");
     element.style.backgroundColor = "lightblue";
     element.style.color = "black";
     element.querySelector('input[type=radio]').checked = true;
-  }
+}
 
+function removeAddress(addressId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "Do you really want to remove this address?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, remove it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch('/removeAddress/' + addressId, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('Removed!', 'Your address has been removed.', 'success');
+                    document.getElementById('address' + addressId).remove();
+                } else {
+                    Swal.fire('Failed!', 'Failed to remove address. Please try again.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Error!', 'An error occurred. Please try again.', 'error');
+            });
+        }
+    });
+}
+
+function checkTotalAmount() {
+    const totalAmountElement = document.getElementById('totalAmount');
+    const totalAmount = parseFloat(totalAmountElement.innerText.replace('₹ ', '').replace(',', ''));
+    const codOption = document.getElementById('cashOnDelivery');
+    const codLabel = document.getElementById('codLabel');
+
+    if (totalAmount > 1000) {
+        codOption.disabled = true;
+        codLabel.classList.add('strikethrough');
+    } else {
+        codOption.disabled = false;
+        codLabel.classList.remove('strikethrough');
+    }
+}
+
+function applyCoupon() {
+    const couponCode = document.getElementById('couponCode').value;
+
+    fetch('/applyCoupon', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ couponCode: couponCode })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire('Success', 'Coupon applied successfully', 'success');
+            document.getElementById('totalAmount').innerText = `₹ ${data.newTotal.toFixed(2)}`;
+            document.getElementById('discount').innerText = `₹ ${data.discount.toFixed(2)}`;
+            checkTotalAmount();
+        } else {
+            Swal.fire('Error', data.message || 'Error applying coupon', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire('Error', 'An error occurred. Please try again.', 'error');
+    });
+}
+
+function handlePlaceOrder(e) {
+    e.preventDefault();
+    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value;
+    const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked')?.value;
+    const deliveryChargeElement = document.getElementById('deliveryCharge');
+    const deliveryCharge = parseFloat(deliveryChargeElement.innerText.replace('₹ ', '').trim()) || 0;
+
+    if (!selectedAddress) {
+        return Swal.fire('Error', 'Please select a delivery address.', 'error');
+    }
+    if (!paymentMethod) {
+        return Swal.fire('Error', 'Please select a payment method.', 'error');
+    }
+
+    if (paymentMethod === 'razorpay') {
+        handleRazorpayPayment(selectedAddress, deliveryCharge);
+    } else {
+        const form = document.querySelector('.checkout__form');
+        const deliveryChargeInput = document.createElement('input');
+        deliveryChargeInput.type = 'hidden';
+        deliveryChargeInput.name = 'deliveryCharge';
+        deliveryChargeInput.value = deliveryCharge;
+        form.appendChild(deliveryChargeInput);
+        form.submit();
+    }
+}
+
+async function handleRazorpayPayment(selectedAddress, deliveryCharge) {
+    try {
+        const response = await fetch('/placeOrder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                selectedAddress: selectedAddress,
+                paymentMethod: 'razorpay',
+                deliveryCharge: deliveryCharge
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            const options = {
+                key: "<%= razorpay_id %>",
+                amount: data.amount,
+                currency: data.currency,
+                name: "Nashifa",
+                description: "Test Transaction",
+                order_id: data.razorpayOrderId,
+                handler: function (response) {
+                    verifyPayment(response, data.orderId);
+                },
+                prefill: {
+                    name: "<%= userData.name %>",
+                    email: "<%= userData.email %>",
+                    contact: "<%= userData.mobile %>"
+                },
+                theme: {
+                    color: "#3399cc"
+                },
+                modal: {
+                    ondismiss: function() {
+                        setTimeout(() => {
+                            showPaymentFailedAlert();
+                        }, 300);
+                    }
+                }
+            };
+            const rzp1 = new Razorpay(options);
+            rzp1.open();
+        } else {
+            showPaymentFailedAlert();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showPaymentFailedAlert();
+    }
+}
+
+function showPaymentFailedAlert() {
+    Swal.fire({
+        title: 'Payment Failed',
+        text: 'The payment process was unsuccessful. Please try again.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        timer: 5000, 
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+    });
+}
+
+async function verifyPayment(response, orderId) {
+    try {
+        const verifyResponse = await fetch('/verifyRazorpayPayment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                orderId: orderId
+            })
+        });
+
+        const verifyData = await verifyResponse.json();
+        if (verifyData.success) {
+            window.location.href = `/orderplaced?orderId=${orderId}`;
+        } else {
+            showPaymentFailedAlert();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showPaymentFailedAlert();
+    }
+}
+
+function navigateToAddAddress(event) {
+    event.preventDefault(); 
+    window.location.href = '/addNewAddress'; 
+}
 </script>

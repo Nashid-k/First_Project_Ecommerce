@@ -8,7 +8,6 @@
         justify-content: center;
         align-items: center;
         height: 100vh;
-   
     }
 
     .form-control:focus {
@@ -53,20 +52,17 @@
         margin-right: 10px; 
     }
 
-    
     .error {
         color: #CA1515;
         font-size: 0.8rem;
         margin-top: 4px;
     }
 
-  
     .password-strength {
         font-size: 0.8rem;
         margin-top: 4px;
     }
 
-    
     .live-validation {
         font-size: 0.8rem;
         margin-top: 4px;
@@ -89,13 +85,13 @@
                             <div class="alert alert-success" role="alert" style="color: green;">
                                 <%= messages.success %>
                             </div>
-                            <% } %>
+                        <% } %>
     
-                            <% if (messages.error) { %>
+                        <% if (messages.error) { %>
                             <div class="alert alert-danger" role="alert" style="color: red;">
                                 <%= messages.error %>
                             </div>
-                            <% } %>
+                        <% } %>
 
                         <div class="form-group">
                             <label for="name">Name </label><span style="color: red;">*</span>
@@ -125,6 +121,11 @@
                             <div class="error" id="cpassword-error"></div>
                             <div class="live-validation" id="cpassword-validation"></div>
                         </div>
+                        <div class="form-group">
+                            <label for="referred_code">Referral Code (Optional)</label>
+                            <input type="text" class="form-control" id="referred_code" name="referred_code" >
+                            <div class="error" id="referred_code-error"></div>
+                        </div>
                         <button type="submit" class="btn btn-primary btn-block">Create an Account</button> 
                     </form>
                     <p class="text-center create-account">
@@ -146,7 +147,6 @@
             return previousInput.value.trim() !== '';
         }
 
-
         function toggleNextInput(currentInput) {
             var nextInput = currentInput.nextElementSibling;
             if (isPreviousFilled(currentInput)) {
@@ -155,7 +155,6 @@
                 nextInput.setAttribute('disabled', 'disabled');
             }
         }
-
 
         function setupInputListeners() {
             var inputFields = document.querySelectorAll('.form-control');
@@ -180,7 +179,6 @@
         }
     });
 
-   
     document.getElementById('name').addEventListener('keyup', function(event) {
         if (event.keyCode === 8 || event.keyCode === 46) {
             var nameError = document.getElementById('name-error');
@@ -188,11 +186,9 @@
         }
     });
 
-   
     document.getElementById('email').addEventListener('input', function() {
         var email = this.value.trim(); 
         var emailError = document.getElementById('email-error');
-
 
         emailError.innerText = '';
 
@@ -201,14 +197,12 @@
         }
     });
 
-  
     document.getElementById('email').addEventListener('keyup', function(event) {
         if (event.keyCode === 8 || event.keyCode === 46) { 
             var emailError = document.getElementById('email-error');
             emailError.innerText = ''; 
         }
     });
-
 
     document.getElementById('password').addEventListener('input', function() {
         var password = this.value;
@@ -261,7 +255,6 @@
         }
     });
 
-    
     document.getElementById('cpassword').addEventListener('keyup', function(event) {
         if (event.keyCode === 8 || event.keyCode === 46) { 
             var cpasswordValidation = document.getElementById('cpassword-validation');
@@ -269,7 +262,6 @@
         }
     });
 
-   
     document.getElementById('signup-form').addEventListener('submit', function(event) {
         var name = document.getElementById('name').value.trim();
         var email = document.getElementById('email').value.trim();
@@ -295,18 +287,14 @@
                 document.getElementById('cpassword-error').innerText = 'Confirm password cannot be empty';
             }
         } else {
-          
             document.getElementById('name-error').innerText = '';
             document.getElementById('email-error').innerText = '';
             document.getElementById('mobile-error').innerText = '';
             document.getElementById('password-error').innerText = '';
             document.getElementById('cpassword-error').innerText = '';
-
-           
         }
     });
 
-   
     function clearFlashMessages() {
         var flashMessages = document.querySelectorAll('.alert');
         flashMessages.forEach(function(message) {
@@ -315,7 +303,6 @@
             }, 5000);
         });
     }
-
 
     clearFlashMessages();
 </script>

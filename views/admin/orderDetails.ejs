@@ -1,7 +1,7 @@
 <%- include('../layouts/adminheader') %>
 <div class="container" style="margin-left: 120px;">
   <div class="row" style="margin-left: 120px">
-    <div class="col-md-8" >
+    <div class="col-md-8">
       <!-- Order details -->
       <div class="card">
         <div class="card-header">
@@ -11,11 +11,18 @@
           <p><strong>Order ID:</strong> <%= order._id %></p>
           <p><strong>Customer Name:</strong> <%= order.userId.name %></p>
           <p><strong>Order Status:</strong>
-            <span class="badge status-label <%= order.orderStatus.toLowerCase() %>"><%= order.orderStatus %></span>
+            <span class="badge status-label <%= product.status.toLowerCase() %>"><%= product.status %></span>
           </p>
 
-          <!-- Ordered Items -->
-          <h5>Ordered Items</h5>
+          <!-- Delivery Address -->
+          <h5>Delivery Address</h5>
+          <!-- <p><strong>Address Type:</strong> <%= order.deliveryAddress.addresstype %></p> -->
+          <p><strong>Address:</strong> <%= order.deliveryAddress.address %>, <%= order.deliveryAddress.locality %>, <%= order.deliveryAddress.city %>, <%= order.deliveryAddress.state %>, <%= order.deliveryAddress.pincode %></p>
+    
+          
+
+          <!-- Ordered Item -->
+          <h5>Product Details</h5>
           <table class="table table-striped">
             <thead>
               <tr>
@@ -26,52 +33,48 @@
               </tr>
             </thead>
             <tbody>
-              <% order.orderedItem.forEach(item => { %>
-                <tr>
-                  <td>
-                    <div style="width: 50px; height: 70px; overflow: hidden; border: 1px solid #ccc; border-radius: 5px;">
-                      <img src="<%= process.env.BASE_URL %>/uploads/products/<%= item.productId.mainImage %>" alt="<%= item.productId.name %> image" style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
-                  </td>
-                  <td><%= item.productId.name %></td>
-                  <td><%= item.quantity %></td>
-                  <td><%= item.productId.price %></td>
-                </tr>
-              <% }); %>
+              <tr>
+                <td>
+                  <div style="width: 50px; height: 70px; overflow: hidden; border: 1px solid #ccc; border-radius: 5px;">
+                    <img src="<%= process.env.BASE_URL %>/uploads/products/<%= product.productId.mainImage %>" alt="<%= product.productId.name %> image" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
+                </td>
+                <td><%= product.productId.name %></td>
+                <td><%= product.quantity %></td>
+                <td><%= product.priceAtPurchase %></td>
+              </tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
     <div class="col-md-4">
-      <!-- Change Order Status -->
-  <!-- Change Order Status -->
-<div class="card">
-    <div class="card-header">
-      <h4 class="card-title">Change Order Status</h4>
-    </div>
-    <div class="card-body">
-      <form id="updateOrderStatusForm" action="/admin/updateOrderStatus" method="POST">
-        <div class="form-group">
-            <input type="hidden" name="orderId" id="orderId" value="<%= order._id %>">
-            <label for="orderStatus">Select Status:</label>
-            <select class="form-control" id="orderStatus" name="orderStatus">
-              <option value="pending" <%= order.orderStatus === 'pending'? 'selected' : '' %>>Pending</option>
-              <option value="confirmed" <%= order.orderStatus === 'confirmed'? 'selected' : '' %>>Confirmed</option>
-              <option value="shipped" <%= order.orderStatus === 'shipped'? 'selected' : '' %>>Shipped</option>
-              <option value="delivered" <%= order.orderStatus === 'delivered'? 'selected' : '' %>>Delivered</option>
-              <option value="cancelled" <%= order.orderStatus === 'cancelled'? 'selected' : '' %>>Cancelled</option>
-            </select>
+      <!-- Change Product Status -->
+      <div class="card">
+        <div class="card-header">
+          <h4 class="card-title">Change Product Status</h4>
         </div>
-        <br>
-        <button type="submit" class="btn btn-primary">Update Status</button>
-      </form>
+        <div class="card-body">
+          <form id="updateProductStatusForm" action="/admin/updateProductStatus" method="POST">
+            <div class="form-group">
+              <input type="hidden" name="orderId" value="<%= order._id %>">
+              <input type="hidden" name="productId" value="<%= product.productId._id %>">
+              <label for="productStatus">Select Status:</label>
+              <select class="form-control" id="productStatus" name="productStatus">
+                <option value="pending" <%= product.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                <option value="confirmed" <%= product.status === 'confirmed' ? 'selected' : '' %>>Confirmed</option>
+                <option value="shipped" <%= product.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
+                <option value="delivered" <%= product.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                <option value="cancelled" <%= product.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                <option value="returned" <%= product.status === 'returned' ? 'selected' : '' %>>Returned</option>
+              </select>
+            </div>
+            <br>
+            <button type="submit" class="btn btn-primary">Update Status</button>
+          </form>
+        </div>
+      </div>
     </div>
-  </div>
-  
-
-
-      
   </div>
 </div>
 <%- include('../layouts/adminfooter') %>
@@ -93,38 +96,36 @@
   .status-label.cancelled {
     background-color: #dc3545; /* Red */
   }
+
+  .status-label.returned {
+    background-color: #dc3545; /* Red */
+  }
 </style>
 
-
-
-
-
-
 <script>
-    document.getElementById('updateOrderStatusForm').addEventListener('submit', function(event) {
-      event.preventDefault(); // Prevent the default form submission
-    
-      const orderId = document.getElementById('orderId').value;
-      const orderStatus = document.getElementById('orderStatus').value;
-    
-      fetch('/admin/updateOrderStatus', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ orderId, orderStatus })
-      })
-     .then(response => {
-        if (response.ok) {
-          window.location.reload(); // Reload the page if the request is successful
-        } else {
-          throw new Error('Failed to update order status');
-        }
-      })
-     .catch(error => {
-        console.error('Error:', error);
-        // Optionally, display an error message to the user
-      });
+  document.getElementById('updateProductStatusForm').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent default form submission
+
+    const orderId = document.querySelector('input[name="orderId"]').value;
+    const productId = document.querySelector('input[name="productId"]').value;
+    const productStatus = document.getElementById('productStatus').value;
+
+    fetch('/admin/updateProductStatus', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ orderId, productId, productStatus })
+    })
+    .then(response => {
+      if (response.ok) {
+        window.location.reload(); // Reload page on success
+      } else {
+        throw new Error('Failed to update product status');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
     });
-    </script>
-    
+  });
+</script>

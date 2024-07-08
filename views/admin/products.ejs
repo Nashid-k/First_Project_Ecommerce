@@ -28,7 +28,7 @@
             <tr>
               <th>Name</th>
               <th>Image</th>
-              <th>Description</th>
+              <!-- <th>Description</th> -->
               <th>Stock</th>
               <th>Status</th>
               <th>Actions</th>
@@ -43,7 +43,7 @@
                     <img src="<%= process.env.BASE_URL %>/uploads/products/<%= product.mainImage %>" alt="<%= product.name %> category image" style="width: 100%; height: 100%; object-fit: cover;">
                   </div>
                 </td>
-                <td><%= product.description %></td>
+                <!-- <td><%= product.description %></td> -->
                 <td><%= product.quantity %></td>
                 <td>
                   <span id="status-<%= product._id %>" class="badge <%= product.unlisted ? 'bg-secondary' : 'bg-success' %>">

@@ -1,0 +1,199 @@
+<%- include('../layouts/adminheader') %>
+<div class="container mt-4" style="margin-left: 16rem;">
+  <!-- Selection Div -->
+  <div class="mb-4">
+    <select id="dateRange" class="form-select">
+      <option value="daily">Daily</option>
+      <option value="weekly">Weekly</option>
+      <option value="yearly">Yearly</option>
+      <option value="custom">Custom</option>
+    </select>
+    <input type="date" id="customDate" class="form-control" style="display: none;">
+  </div>
+  
+  <!-- Calendar -->
+  <div id="calendar" class="mb-4" style="display: none;">
+    <input type="date" id="startDate" class="form-control mb-2">
+    <input type="date" id="endDate" class="form-control">
+  </div>
+  
+  <!-- Sales Report Table -->
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title mb-4">Sales Report</h5>
+      <div class="table-responsive" id="salesReportTable">
+        <% if (!salesData || salesData.length === 0) { %>
+          <p class="text-muted">No sales data available.</p>
+        <% } else { %>
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Sale ID</th>
+                <th>Customer Name</th>
+                <th>Product Image</th>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Total Price</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% salesData.forEach((sale) => { %>
+                <tr>
+                  <td><%= sale.saleId %></td>
+                  <td><%= sale.customerName %></td>
+                  <td>
+                    <div style="max-width: 100px; max-height: 100px; overflow: hidden; border: 1px solid #ccc; border-radius: 5px;">
+                      <% if (sale.productImage) { %>
+                        <img src="<%= process.env.BASE_URL %>/uploads/products/<%= sale.productImage %>" alt="<%= sale.productName %> image" style="width: 100%; height: auto; object-fit: cover;">
+                      <% } else { %>
+                        <span class="text-muted">No image</span>
+                      <% } %>
+                    </div>
+                  </td>
+                  <td><%= sale.productName %></td>
+                  <td><%= sale.quantity %></td>
+                  <td>$<%= sale.totalPrice.toFixed(2) %></td>
+                  <td><%= moment(sale.saleDate).format('DD/MM/YYYY') %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        <% } %>
+      </div>
+    </div>
+    <div class="card-footer">
+      <button class="btn btn-primary" id="downloadPdfBtn">Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Custom Dates -->
+<div class="modal fade" id="customDateModal" tabindex="-1" aria-labelledby="customDateModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="customDateModalLabel">Select Custom Dates</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="customDateForm">
+          <div class="mb-3">
+            <label for="startDateModal" class="form-label">Start Date:</label>
+            <input type="date" id="startDateModal" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label for="endDateModal" class="form-label">End Date:</label>
+            <input type="date" id="endDateModal" class="form-control">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="applyCustomDates">Apply</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../layouts/adminfooter') %>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+$(document).ready(function() {
+  const dateRangeSelect = $('#dateRange');
+  const customDateInput = $('#customDate');
+  const calendarDiv = $('#calendar');
+
+  dateRangeSelect.on('change', function() {
+    if (this.value === 'custom') {
+      $('#customDateModal').modal('show');
+    } else {
+      customDateInput.hide();
+      calendarDiv.hide
+      // Call function to fetch and display sales report based on selected date range
+      fetchAndDisplaySalesReport(this.value);
+    }
+  });
+
+  $('#applyCustomDates').click(function() {
+    const startDate = $('#startDateModal').val();
+    const endDate = $('#endDateModal').val();
+    $('#customDateModal').modal('hide');
+    // Call function to fetch and display sales report based on custom date range
+    fetchAndDisplaySalesReport('custom', startDate, endDate);
+  });
+
+  $('#downloadPdfBtn').click(function() {
+    $(this).text('Generating PDF...').prop('disabled', true);
+
+    fetch('/admin/downloadsalesreport')
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.blob();
+      })
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'salesReport.pdf';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to download PDF. Please try again.');
+      })
+      .finally(() => {
+        $(this).text('Download PDF').prop('disabled', false);
+      });
+  });
+
+  // Function to fetch and display sales report based on date range
+  function fetchAndDisplaySalesReport(dateRange, startDate, endDate) {
+    $.ajax({
+      url: '/sortReport',
+      method: 'POST',
+      data: { dateRange, startDate, endDate },
+      success: function(response) {
+        const salesReportTable = $('#salesReportTable');
+        const salesData = response.salesData;
+
+        // Clear previous table content
+        salesReportTable.empty();
+
+        // Append new table content
+        if (!salesData || salesData.length === 0) {
+          salesReportTable.html('<p class="text-muted">No sales data available.</p>');
+        } else {
+          const tableBody = $('<tbody></tbody>');
+          salesData.forEach(sale => {
+            const row = `
+              <tr>
+                <td>${sale.saleId}</td>
+                <td>${sale.customerName}</td>
+                <td>
+                  <div style="max-width: 100px; max-height: 100px; overflow: hidden; border: 1px solid #ccc; border-radius: 5px;">
+                    ${sale.productImage ? `<img src="${process.env.BASE_URL}/uploads/products/${sale.productImage}" alt="${sale.productName} image" style="width: 100%; height: auto; object-fit: cover;">` : `<span class="text-muted">No image</span>`}
+                  </div>
+                </td>
+                <td>${sale.productName}</td>
+                <td>${sale.quantity}</td>
+                <td>$${sale.totalPrice.toFixed(2)}</td>
+                <td>${moment(sale.saleDate).format('DD/MM/YYYY')}</td>
+              </tr>
+            `;
+            tableBody.append(row);
+          });
+          salesReportTable.append(tableBody);
+        }
+      },
+      error: function(err) {
+        console.error('Error fetching and displaying sales report:', err);
+        // Handle error case
+      }
+    });
+  }
+});
+</script>

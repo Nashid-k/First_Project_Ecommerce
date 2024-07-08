@@ -1,0 +1,154 @@
+<%- include('../layouts/header') %>
+
+<style>
+  .path a {
+    margin-bottom: 5px;
+    color: #000;
+    text-decoration: none;
+  }
+
+  .path a:hover {
+    color: red;
+    transition-duration: 0.6s;
+  }
+
+  .path {
+    font-family: Montserrat, sans-serif;
+    font-size: 19px;
+    text-align: left;
+    margin-right: auto;
+    margin-top: 10px;
+    height: 500px;
+  }
+
+  .referral-section {
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    text-align: center;
+  }
+
+  .referral-link {
+    font-size: 18px;
+    font-weight: bold;
+    color: #007bff;
+    word-break: break-all;
+  }
+
+  .referral-info {
+    font-size: 16px;
+  }
+
+  .align-right-btn {
+    float: right;
+  }
+
+  /* Toast styling */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 250px;
+    background-color: black;
+    color: white;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- Breadcrumb Begin -->
+<div class="breadcrumb-option">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="breadcrumb__links">
+          <a href="/"><i class="fa fa-home"></i> Home</a>
+          <a href="/profile">Personal Information</a>
+          <span>Referral</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Breadcrumb End -->
+
+<!-- Referral Section Begin -->
+<section class="checkout spad">
+  <div class="container">
+    <div class="row d-flex justify-content-end">
+      <div class="path">
+        <div class="l">
+          <a href="/profile">Personal Information</a>
+        </div>
+        <p class="text-secondary text-muted">____________________________</p>
+        <div>
+          <a href="/myorders">My Orders</a>
+        </div>
+        <p class="text-secondary text-muted">____________________________</p>
+        <div>
+          <a href="/address">Address</a>
+        </div>
+        <p class="text-secondary text-muted">____________________________</p>
+        <div>
+          <a href="/wallet">Wallet</a>
+        </div>
+        <p class="text-secondary text-muted">____________________________</p>
+        <div>
+          <a href="/coupons" >My Coupons</a>
+        </div>
+        <p class="text-secondary text-muted">____________________________</p>
+        <div>
+          <a href="/refferal" style="color: red;">Referral</a>
+        </div>
+        <p class="text-secondary text-muted">____________________________</p>
+      </div>
+
+      <div class="col-md-9">
+        <h5 style="text-align: center; font-weight: bold;">Referral Program</h5>
+        <hr>
+
+        <div class="referral-section">
+          <p class="referral-info">Share your referral link with friends and earn rewards!</p>
+          <div class="form-group">
+            <label for="referralCode">Your Referral Code:</label>
+            <input type="text" class="form-control text-center" id="referralCode" value="<%= userData.referral_code %>" readonly>
+          </div>
+          <div>
+            <button class="btn btn-primary" onclick="copyReferralCode()">Copy Code</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Referral Section End -->
+
+<!-- Toast Notification -->
+<div class="toast" id="referralToast" data-delay="3000">
+  <div class="toast-body">
+    Referral code copied!
+  </div>
+</div>
+
+<%- include('../layouts/footer') %>
+
+<!-- Include jQuery and Bootstrap JavaScript at the end of the body to ensure they are loaded after the DOM is ready -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom JavaScript to handle referral code copy -->
+<script>
+function copyReferralCode() {
+  var copyText = document.getElementById("referralCode");
+  copyText.select();
+  copyText.setSelectionRange(0, 99999); // For mobile devices
+  document.execCommand("copy");
+
+  // Show toast notification
+  $('#referralToast').toast('show');
+}
+</script>
+</body>
+</html>

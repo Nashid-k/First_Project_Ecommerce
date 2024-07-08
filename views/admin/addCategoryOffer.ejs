@@ -1,0 +1,53 @@
+<%- include('../layouts/adminheader') %>
+<!-- Bootstrap CSS -->
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container" style="margin-left: 16rem;">
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title mb-4">Add Category Offer</h5>
+      <% if (messages.success) { %>
+        <div class="alert alert-success flash-message" role="alert" style="color: green;" data-timeout="5">
+          <%= messages.success %>
+        </div>
+      <% } %>
+
+      <% if (messages.error) { %>
+        <div class="alert alert-danger flash-message" role="alert" style="color: red;" data-timeout="5">
+          <%= messages.error %>
+        </div>
+      <% } %>
+      <!-- Form for adding a category offer -->
+      <form method="POST" action="/admin/addCategoryOffer">
+        <div class="mb-3">
+          <label for="description" class="form-label">Description</label>
+          <input type="text" class="form-control" id="description" name="description" required>
+        </div>
+        <div class="mb-3">
+            <label for="selectedCategory" class="form-label">Select Category</label>
+            <select class="form-select" id="selectedCategory" name="selectedCategory" required>
+              <% categories.forEach(category => { %>
+                <option value="<%= category._id %>"><%= category.name %></option>
+              <% }); %>
+            </select>
+          </div>
+        <div class="mb-3">
+          <label for="discountValue" class="form-label">Discount Value</label>
+          <input type="number" class="form-control" id="discountValue" name="discountValue" required>
+        </div>
+        <div class="mb-3">
+          <label for="startDate" class="form-label">Start Date</label>
+          <input type="date" class="form-control" id="startDate" name="startDate" required>
+        </div>
+        <div class="mb-3">
+          <label for="endDate" class="form-label">End Date</label>
+          <input type="date" class="form-control" id="endDate" name="endDate" required>
+        </div>
+      
+        <button type="submit" class="btn btn-primary">Add Offer</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../layouts/adminfooter') %>
