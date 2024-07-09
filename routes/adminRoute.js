@@ -24,7 +24,8 @@ adminRoute.set('views','./views/admin')
 adminRoute.get('/',adminController.renderLogin)
 adminRoute.post('/login',adminController.verifyLogin)
 adminRoute.get('/login',adminController.loadLogin)
-adminRoute.get('/dashboard',adminAuth.is_login,adminController.loadDashboard)
+adminRoute.get('/dashboard/data', adminController.generateData)
+adminRoute.get('/dashboard', adminController.loadDashboard)
 
 
 
@@ -70,6 +71,7 @@ adminRoute.put('/updateProduct/:id',productsUpload,adminController.updateProduct
 
 
 adminRoute.get('/sales-report',adminController.renderSalesReport)
+adminRoute.post('/sortReport',adminController.sortReport)
 adminRoute.get('/downloadsalesreport',adminController.downloadSalesReport)
 adminRoute.get('/coupons',adminController.renderCoupons)
 adminRoute.post('/addCoupon',adminController.addCoupons)
@@ -93,7 +95,7 @@ adminRoute.delete('/removeCategoryOffer/:offerId',adminController.removeCategory
 adminRoute.get('/addOffer',adminController.addOffer);
 adminRoute.post('/addProductOffer',adminController.addProductOffer)
 adminRoute.delete('/removeProductOffer/:offerId',adminController.removeProductOffer)
-adminRoute.get('/api/dashboard',adminController.generateData)
+
 adminRoute.get('/return',adminController.renderReturnRequest)
 adminRoute.post('/acceptReturn', adminController.acceptReturn);
 

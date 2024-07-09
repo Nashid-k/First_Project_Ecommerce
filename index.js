@@ -9,14 +9,14 @@ require('./middlewares/passport');
 
 dotenv.config();
 
-// mongoose.connect(process.env.mongo_url);
+mongoose.connect(process.env.mongo_url);
 
 
-const mongoUrl = 'mongodb+srv://nashifa4u:6hUkUU62IeOAq7Xg@nashifa.9gfjeop.mongodb.net/?retryWrites=true&w=majority&appName=Nashifa';
+// const mongoUrl = 'mongodb+srv://nashifa4u:6hUkUU62IeOAq7Xg@nashifa.9gfjeop.mongodb.net/?retryWrites=true&w=majority&appName=Nashifa';
 
-mongoose.connect(mongoUrl)
-    .then(() => console.log('MongoDB connected'))
-    .catch(err => console.error('MongoDB connection error:', err));
+// mongoose.connect(mongoUrl)
+//     .then(() => console.log('MongoDB connected'))
+//     .catch(err => console.error('MongoDB connection error:', err));
 
 
 

@@ -171,8 +171,7 @@ const updateCartItem = async (req, res) => {
             cartItems: updatedCartItems,
         });
     } catch (error) {
-        console.error(error.message);
-        res.status(500).send("Internal Server Error");
+        return res.status(500).send({ error: "Internal server error" });
     }
 };
 
@@ -192,7 +191,7 @@ const removeCartItem = async (req, res) => {
 
         res.status(200).json({ success: true });
     } catch (error) {
-        console.error(error.message);
+
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
@@ -205,44 +204,53 @@ const loadCheckout = async (req, res) => {
             return res.redirect("/login");
         }
 
-        const cartItems = await CartItem.find({ userId: userId }).populate("product.productId");
-
+        const cartItems = await CartItem.find({ userId }).populate("product.productId");
         const userData = await User.findById(userId);
-        const addressData = await Address.find({ userId: userId });
+        const addressData = await Address.find({ userId });
 
-        let total = 0;
-        cartItems.forEach((item) => {
-            item.product.forEach((product) => {
-                total += product.totalPrice;
+        let subtotal = 0;
+        let totalProductCount = 0;
+
+        cartItems.forEach(cartItem => {
+            cartItem.product.forEach(product => {
+                subtotal += product.totalPrice;
+                totalProductCount += product.quantity;
             });
         });
 
-        let deliveryCharge;
-        if (total < 10000) {
-            deliveryCharge = 25;
-        } else if (total < 40000) {
-            deliveryCharge = 50;
-        } else if (total < 60000) {
-            deliveryCharge = 100;
-        } else {
-            deliveryCharge = 0;
+        let deliveryCharge = 0;
+        if (totalProductCount === 1) {
+            if (subtotal < 10000) {
+                deliveryCharge = 25;
+            } else if (subtotal < 40000) {
+                deliveryCharge = 50;
+            } else if (subtotal < 60000) {
+                deliveryCharge = 100;
+            }
         }
 
-        
+        const total = subtotal + deliveryCharge;
+
+        console.log('Subtotal:', subtotal);
+        console.log('Total Product Count:', totalProductCount);
+        console.log('Delivery Charge:', deliveryCharge);
+        console.log('Total:', total);
+
         res.render("checkout", {
             cartItems,
-            subtotal: total,
-            total: (total + deliveryCharge),
-            userData: userData,
-            addressData: addressData,
-            razorpay_id: process.env.RAZORPAY_ID, // Assuming razorpay_id is an environment variable
-            deliveryCharge
+            subtotal,
+            total,
+            userData,
+            addressData,
+            razorpay_id: process.env.RAZORPAY_ID,
+            deliveryCharge,
+            totalProductCount
         });
     } catch (error) {
-        console.log(error.message);
+      
+        res.status(500).render("error", { message: "An error occurred while processing your checkout." });
     }
 };
-
 
 const placeOrder = async (req, res) => {
     try {
@@ -255,8 +263,7 @@ const placeOrder = async (req, res) => {
             });
         }
 
-        const { selectedAddress, paymentMethod, deliveryCharge } = req.body;
-        console.log("Delivery Charge:", deliveryCharge);
+        const { selectedAddress, paymentMethod } = req.body;
 
         if (!selectedAddress) {
             return res.status(400).json({
@@ -270,11 +277,9 @@ const placeOrder = async (req, res) => {
             });
         }
 
-        // Retrieve cart items for the user
         const cartItems = await CartItem.find({ userId }).populate("product.productId");
         const cartId = cartItems.map(item => item._id);
 
-        // Check if the cart is empty
         if (cartItems.length === 0) {
             return res.status(400).json({
                 success: false,
@@ -282,8 +287,8 @@ const placeOrder = async (req, res) => {
             });
         }
 
-        // Calculate total order amount and prepare ordered items
         let subtotal = 0;
+        let totalProductCount = 0;
         const orderedItems = [];
 
         for (const cartItem of cartItems) {
@@ -308,31 +313,38 @@ const placeOrder = async (req, res) => {
                 const itemSubtotal = priceAtPurchase * productItem.quantity;
 
                 subtotal += itemSubtotal;
+                totalProductCount += productItem.quantity;
 
                 orderedItems.push({
                     productId: productItem.productId,
                     quantity: productItem.quantity,
                     priceAtPurchase,
-                    itemSubtotal
+                    totalProductAmount: itemSubtotal
                 });
 
-                // Update product quantity
                 product.quantity -= productItem.quantity;
                 await product.save();
             }
         }
 
-        // Calculate final order amount after deducting delivery charge
-        const orderAmount = Math.max(0, subtotal + deliveryCharge);
+        let deliveryCharge = 0;
+        if (totalProductCount === 1) {
+            if (subtotal < 10000) {
+                deliveryCharge = 25;
+            } else if (subtotal < 40000) {
+                deliveryCharge = 50;
+            } else if (subtotal < 60000) {
+                deliveryCharge = 100;
+            }
+        }
 
-        // Adjust individual product amounts proportionally
-        const adjustmentFactor = orderAmount / subtotal;
-        orderedItems.forEach(item => {
-            item.totalProductAmount = Number((item.itemSubtotal * adjustmentFactor).toFixed(2));
-            delete item.itemSubtotal; // Remove the temporary subtotal
-        });
+        const orderAmount = subtotal + deliveryCharge;
 
-        // Check if payment method is wallet and user wallet has enough balance
+        console.log("Subtotal:", subtotal);
+        console.log("Total Product Count:", totalProductCount);
+        console.log("Delivery Charge:", deliveryCharge);
+        console.log("Order Amount:", orderAmount);
+
         if (paymentMethod === 'wallet') {
             const userWallet = await Wallet.findOne({ userId });
 
@@ -350,19 +362,16 @@ const placeOrder = async (req, res) => {
                 });
             }
 
-            const transaction = {
+            userWallet.balance -= orderAmount;
+            userWallet.transactions.push({
                 amount: -orderAmount,
                 transactionMethod: "Payment",
                 date: Date.now()
-            };
-
-            userWallet.balance -= orderAmount;
-            userWallet.transactions.push(transaction);
+            });
 
             await userWallet.save();
         }
 
-        // Create new order document
         const orderData = new Order({
             cartId,
             userId,
@@ -378,7 +387,6 @@ const placeOrder = async (req, res) => {
 
         await orderData.save();
 
-        // Process eligible coupons
         const eligibleCoupons = await Coupon.find({ minPurchaseAmount: { $lte: orderAmount } });
 
         if (eligibleCoupons.length > 0) {
@@ -397,10 +405,9 @@ const placeOrder = async (req, res) => {
             await user.save();
         }
 
-        // If payment method is Razorpay, create Razorpay order
         if (paymentMethod === "razorpay") {
             const options = {
-                amount: orderAmount * 100, // Amount in paisa
+                amount: orderAmount * 100,
                 currency: "INR",
                 receipt: `order_${orderData._id}`
             };
@@ -431,27 +438,25 @@ const placeOrder = async (req, res) => {
             });
         }
     } catch (error) {
-        console.error(error);
+        
         res.status(500).json({
             success: false,
             message: "An error occurred while placing the order."
         });
     }
 };
-
 const verifyRazorpayPayment = async (req, res) => {
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
 
-        // Construct the expected signature
+
         const sign = razorpay_order_id + "|" + razorpay_payment_id;
         const expectedSign = crypto.createHmac("sha256", razorpay_secret)
             .update(sign.toString())
             .digest("hex");
 
-        // Check if the received signature matches the expected signature
         if (razorpay_signature === expectedSign) {
-            // Update the order's payment status
+
             const updatedOrder = await Order.findByIdAndUpdate(orderId, { paymentStatus: true }, { new: true });
             if (!updatedOrder) {
                 return res.status(404).json({
@@ -460,7 +465,7 @@ const verifyRazorpayPayment = async (req, res) => {
                 });
             }
 
-            // Clear the cart items after successful order placement
+            
             const cartItems = await CartItem.find({ userId: updatedOrder.userId });
             const cartItemIds = cartItems.map(item => item._id);
             await CartItem.deleteMany({ _id: { $in: cartItemIds } });
@@ -471,14 +476,14 @@ const verifyRazorpayPayment = async (req, res) => {
                 orderId: orderId
             });
         } else {
-            // Handle invalid signature
+      
             res.status(400).json({
                 success: false,
                 message: "Payment verification failed. Invalid signature."
             });
         }
     } catch (error) {
-        console.error(error);
+    
         res.status(500).json({
             success: false,
             message: "An error occurred while verifying payment."
@@ -497,7 +502,7 @@ const addNewAddress = async (req, res) => {
             res.render('addCheckoutAddress', { userData })
         }
     } catch (error) {
-        console.log(error.message);
+        return res.status(500).send({ error: "Internal server error" });
     }
 }
 const insertCheckoutAddress = async (req, res) => {
@@ -546,7 +551,7 @@ const insertCheckoutAddress = async (req, res) => {
         res.redirect("/checkout");
 
     } catch (error) {
-        console.log(error.message);
+
         req.flash("error", "Internal server error");
         res.redirect("/addNewAddress");
     }
@@ -558,7 +563,7 @@ const removeAddress = async (req, res) => {
         await Address.findByIdAndDelete(addressId);
         res.json({ success: true, message: 'Address removed successfully' });
     } catch (error) {
-        console.log(error.message);
+        return res.status(500).send({ error: "Internal server error" });
     }
 }
 
@@ -629,7 +634,7 @@ const applyCoupon = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error.message);
+
         return res.status(500).json({
             success: false,
             message: 'Internal server error'

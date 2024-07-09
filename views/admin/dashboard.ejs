@@ -115,14 +115,42 @@
         </div>
       </div>
     </div>
-    <!-- Best Selling Products and Categories sections remain unchanged -->
+    <div class="row">
+      <!-- Top Products -->
+      <div class="col-lg-6">
+        <div class="card card-body mb-4">
+          <h5 class="card-title">Top 10 Products</h5>
+          <ul class="list-group">
+            <% topProducts.forEach(product => { %>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <%= product.name %>
+                <span class="badge bg-primary rounded-pill"><%= product.count %></span>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+      </div>
+      <!-- Top Categories -->
+      <div class="col-lg-6">
+        <div class="card card-body mb-4">
+          <h5 class="card-title">Top 10 Categories</h5>
+          <ul class="list-group">
+            <% topCategories.forEach(category => { %>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <%= category.name %>
+                <span class="badge bg-secondary rounded-pill"><%= category.count %></span>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+      </div>
+    </div>
   </section>
 
   <%- include('../layouts/adminfooter') %>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // Include initial chart data from server
     const initialChartData = JSON.parse('<%- chartData %>');
   
     document.addEventListener('DOMContentLoaded', function () {
@@ -142,12 +170,11 @@
         orderChart.data.datasets[0].data = data.orders.data;
         orderChart.update();
   
-        // Update the Total Orders count
         document.querySelector('.total-orders').innerText = data.totalOrders;
       }
   
       function fetchData(reportType) {
-        fetch(`/api/dashboard?reportType=${reportType}`)
+        fetch(`/admin/dashboard/data?reportType=${reportType}`)
           .then(response => response.json())
           .then(data => updateCharts(data))
           .catch(error => console.error('Error fetching data:', error));
@@ -197,7 +224,6 @@
           options: chartOptions
         });
   
-        // Set initial Total Orders count
         document.querySelector('.total-orders').innerText = initialChartData.totalOrders;
       }
   

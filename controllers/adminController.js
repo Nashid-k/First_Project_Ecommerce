@@ -21,7 +21,7 @@ const renderLogin = async (req, res) => {
     try {
         return res.redirect("/admin/login");
     } catch (error) {
-        console.log(error.message);
+      return res.status(500).send({ error: "Internal server error" });
     }
 };
 
@@ -36,7 +36,7 @@ const loadLogin = async (req, res) => {
             return res.render("login");
         }
     } catch (error) {
-        console.log(error.message);
+      return res.status(500).send({ error: "Internal server error" });
     }
 };
 
@@ -65,7 +65,7 @@ const verifyLogin = async (req, res) => {
         return res.redirect("/admin/login");
       }
     } catch (error) {
-      console.log(error.message);
+      return res.status(500).send({ error: "Internal server error" });
     }
   };
   
@@ -83,7 +83,7 @@ const renderCustomer = async (req, res) => {
     });
     return res.render("customers", { userData: formattedUserData });
   } catch (error) {
-    console.log(error.message);
+    return res.status(500).send({ error: "Internal server error" });
   }
 };
 
@@ -95,7 +95,7 @@ const blockUser = async (req, res) => {
         console.log(updatedUser);
         return res.status(200).send({ message: "User blocked successfully", redirect: "/admin/customers" });
     } catch (error) {
-        console.error(error.message);
+ 
         res.status(500).send({ message: "Internal server error" });
     }
 };
@@ -106,7 +106,7 @@ const unblockUser = async (req, res) => {
         const updatedUser = await User.findByIdAndUpdate(userId, { $set: { block: false } }, { new: true });
         return res.status(200).send({ message: "User unblocked successfully", redirect: "/admin/customers" });
     } catch (error) {
-        console.error(error.message);
+ 
         res.status(500).send({ message: "Internal server error" });
     }
 };
@@ -117,7 +117,7 @@ const renderCategory = async (req, res) => {
 
         return res.render("category", { categoryData });
     } catch (error) {
-        console.log(error.message);
+      return res.status(500).send({ error: "Internal server error" });
     }
 };
 
@@ -127,7 +127,7 @@ const renderAddCategory = async (req, res) => {
 
         return res.render("addcategory");
     } catch (error) {
-        console.log(error.message);
+      return res.status(500).send({ error: "Internal server error" });
     }
 };
 
@@ -154,7 +154,7 @@ const insertCategory = async (req, res) => {
     const uploadedImageName = req.file ? req.file.filename : '';
 
     const category = new Category({
-      name: normalizedName,  // Store the lowercase version
+      name: normalizedName, 
       categoryImage: uploadedImageName
     });
 
@@ -180,7 +180,6 @@ const renderEditCategory = async (req, res) => {
             res.redirect("/admin/category");
         }
     } catch (error) {
-        console.log(error.message);
         req.flash("error", "An error occurred while fetching the category");
         res.redirect("/admin/category");
     }
@@ -198,10 +197,10 @@ const updateCategory = async (req, res) => {
       return res.status(400).json({ error: "Category name is required" });
     }
 
-    // Check for existing category using case-insensitive search
+
     const existingCategory = await Category.findOne({
       name: { $regex: new RegExp(`^${normalizedName}$`, 'i') },
-      _id: { $ne: id } // Exclude the current category
+      _id: { $ne: id } 
     });
 
     if (existingCategory) {
@@ -224,50 +223,59 @@ const updateCategory = async (req, res) => {
       return res.status(404).json({ error: "Category not found" });
     }
   } catch (error) {
-    console.error(error.message);
+  
     return res.status(500).json({ error: "An error occurred while updating the category" });
   }
 };
 
-const listCategory = async (req, res) => {
-    try {
-        const { categoryId } = req.body;
-        const categoryData = await Category.findByIdAndUpdate(
-            categoryId,
-            { $set: { is_listed: true } },
-            { new: true }
-        );
+const updateCategoryAndProducts = async (categoryId, update) => {
+  try {
+      const categoryData = await Category.findByIdAndUpdate(
+          categoryId,
+          { $set: update },
+          { new: true }
+      );
 
-        if (categoryData) {
-            res.status(200).json({ category: categoryData, success: "Category listed successfully" });
-        } else {
-            res.status(404).json({ error: "Category not found" });
-        }
-    } catch (error) {
-        console.error("Error listing category:", error.message);
-        res.status(500).json({ error: "Internal server error" });
-    }
+      if (!categoryData) {
+          throw new Error("Category not found");
+      }
+
+      const updatedProducts = await Products.updateMany(
+          { category: categoryId },
+          { $set: update }
+      );
+
+      return { category: categoryData, message: "Category and associated products updated successfully" };
+  } catch (error) {
+      throw new Error(`Error updating category and products: ${error.message}`);
+  }
 };
+
+
+const listCategory = async (req, res) => {
+  try {
+      const { categoryId } = req.body;
+      const result = await updateCategoryAndProducts(categoryId, { is_listed: true });
+      res.status(200).json({ category: result.category, success: result.message });
+  } catch (error) {
+
+      res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 
 const unlistCategory = async (req, res) => {
-    try {
-        const { categoryId } = req.body;
-        const categoryData = await Category.findByIdAndUpdate(
-            categoryId,
-            { $set: { is_listed: false } },
-            { new: true }
-        );
+  try {
+      const { categoryId } = req.body;
+      const result = await updateCategoryAndProducts(categoryId, { is_listed: false });
+      res.status(200).json({ category: result.category, success: result.message });
+  } catch (error) {
 
-        if (categoryData) {
-            res.status(200).json({ category: categoryData, success: "Category unlisted successfully" });
-        } else {
-            res.status(404).json({ error: "Category not found" });
-        }
-    } catch (error) {
-        console.error("Error unlisting category:", error.message);
-        res.status(500).json({ error: "Internal server error" });
-    }
+      res.status(500).json({ error: "Internal server error" });
+  }
 };
+
+
 
 
 const renderProducts = async (req, res) => {
@@ -275,7 +283,7 @@ const renderProducts = async (req, res) => {
         const productData = await Products.find();
         res.render("products", { productData });
     } catch (error) {
-        console.log(error.message);
+    return res.status(500).send({ error: "Internal server error" });
     }
 };
 
@@ -285,7 +293,7 @@ const renderAddProducts = async (req, res) => {
 
         res.render("addproduct", { categoryData });
     } catch (error) {
-        console.log(error.message);
+    return res.status(500).send({ error: "Internal server error" });
     }
 };
 
@@ -370,7 +378,6 @@ const listProduct = async (req, res) => {
             return res.status(404).send({ error: "Product not found" });
         }
     } catch (error) {
-        console.log(error.message);
         return res.status(500).send({ error: "Internal server error" });
     }
 };
@@ -389,7 +396,7 @@ const unlistProduct = async (req, res) => {
             return res.status(404).send({ error: "Product not found" });
         }
     } catch (error) {
-        console.log(error.message);
+    return res.status(500).send({ error: "Internal server error" });
         return res.status(500).send({ error: "Internal server error" });
     }
 };
@@ -470,7 +477,7 @@ const updateProduct = async (req, res) => {
 
     res.render('order',{orderData})
     }catch(error){
-        console.log(error.message);
+    return res.status(500).send({ error: "Internal server error" });
     }
   }
 
@@ -526,203 +533,270 @@ const updateProduct = async (req, res) => {
 
         res.render('orderDetails', { order, product });
     } catch (error) {
-        console.log(error.message);
+    return res.status(500).send({ error: "Internal server error" });
         res.status(500).send("Internal Server Error");
     }
 };
 
 
 
-  const renderSalesReport = async (req, res) => {
-    try {
-      const orders = await Order.find({ orderStatus: 'delivered' }).populate('orderedItem.productId').populate('userId');
-  
-      const salesData = orders.flatMap(order => 
-        order.orderedItem.map(item => ({
-          saleId: order._id,
-          customerName: order.userId?.name || 'Unknown',
-          productName: item.productId?.name || 'No Product Name',
-          productImage: item.productId?.mainImage || '',
-          quantity: item.quantity,
-          totalPrice: (item.quantity * (item.productId?.price || 0)),
-          saleDate: order.createdAt
-        }))
-      );
-  
-      res.render('salesReport', { salesData, moment });
-    } catch (error) {
-      console.error("Error in renderSalesReport:", error);
-      res.status(500).send("Internal Server Error");
-    }
-  };
+
+
   
  
 
+const getQueryByDateRange = (dateRange, startDate, endDate) => {
+  let query = {};
+  const now = moment();
+
+  if (dateRange === 'custom' && startDate && endDate) {
+    query = { createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) } };
+  } else if (dateRange === 'daily') {
+    query = { createdAt: { $gte: now.startOf('day').toDate(), $lte: now.endOf('day').toDate() } };
+  } else if (dateRange === 'weekly') {
+    query = { createdAt: { $gte: now.startOf('week').toDate(), $lte: now.endOf('week').toDate() } };
+  } else if (dateRange === 'yearly') {
+    query = { createdAt: { $gte: now.startOf('year').toDate(), $lte: now.endOf('year').toDate() } };
+  }
+
+  console.log("Generated query:", query);
+  return query;
+};
+const getOrderedItems = (orders) => {
+  return orders.flatMap((order) =>
+    order.orderedItem.map((item) => ({
+      saleId: order._id,
+      customerName: order.userId?.name || 'Unknown',
+      productName: item.productId?.name || 'No Product Name',
+      productImage: item.productId?.mainImage || '',
+      quantity: item.quantity,
+      totalPrice: item.totalProductAmount,
+      saleDate: order.createdAt,
+      itemStatus: item.status || 'Pending',
+      deliveryAddress: order.deliveryAddress?.address || 'Unknown',
+    }))
+  );
+};
 
 
+const renderSalesReport = async (req, res) => {
+  try {
+    res.render('salesReport', { moment });
+  } catch (error) {
+
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+
+const sortReport = async (req, res) => {
+  try {
+    const { dateRange, startDate, endDate, page } = req.body;
+
+
+    const query = getQueryByDateRange(dateRange, startDate, endDate);
+
+
+    const orders = await Order.find(query)
+      .populate({
+        path: 'orderedItem.productId',
+        select: 'name mainImage price status',
+      })
+      .populate('userId')
+      .populate('deliveryAddress');
+
+
+
+    const orderedItems = getOrderedItems(orders);
+
+
+
+    const pageNum = parseInt(page) || 1;
+    const limit = 4;
+    const skip = (pageNum - 1) * limit;
+    const paginatedItems = orderedItems.slice(skip, skip + limit);
+
+    const totalPages = Math.ceil(orderedItems.length / limit);
+
+
+
+    res.json({
+      salesData: paginatedItems,
+      totalPages: totalPages,
+      currentPage: pageNum
+    });
+  } catch (error) {
+   
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
+
   
-  const downloadSalesReport = async (req, res) => {
-    try {
-      const orders = await Order.find({ orderStatus: 'delivered' }).populate('orderedItem.productId').populate('userId');
-  
-      const salesData = orders.flatMap(order =>
-        order.orderedItem.map(item => ({
-          saleId: order._id,
-          customerName: order.userId?.name || 'Unknown',
-          productName: item.productId?.name || 'No Product Name',
-          quantity: item.quantity,
-          price: item.productId?.price || 0,
-          totalAmount: (item.quantity * (item.productId?.price || 0)),
-          saleDate: order.createdAt
-        }))
-      );
-  
-      const doc = new PDFDocument({ margin: 50, size: 'A4' });
-      const reportsDir = path.join(__dirname, '../public/reports');
-      
-      await fsPromises.mkdir(reportsDir, { recursive: true });
-      
-      const filePath = path.join(reportsDir, `salesReport_${moment().format('YYYYMMDD_HHmmss')}.pdf`);
-      const writeStream = fs.createWriteStream(filePath);
-      doc.pipe(writeStream);
-  
-      // Helper functions
-      const generateHr = (y) => {
-        doc.strokeColor("#aaaaaa")
-           .lineWidth(1)
-           .moveTo(50, y)
-           .lineTo(550, y)
-           .stroke();
-      }
-  
-      const formatCurrency = (amount) => {
-        return "Rs. " + amount.toFixed(2);
-      }
-  
-      const formatDate = (date) => {
-        return moment(date).format('DD/MM/YYYY');
-      }
-  
-      // Add page numbers
-      let pageNumber = 1;
-      doc.on('pageAdded', () => {
-        pageNumber++;
-        doc.text(`Page ${pageNumber}`, 50, 750, { align: 'center' });
-      });
-  
-      // Report header
-      doc.fillColor("#444444")
-         .fontSize(28)
-         .text("Nashifa", 50, 50, { align: 'center' })
-         .fontSize(20)
-         .text("Sales Report", 50, 80, { align: 'center' })
-         .fontSize(10)
-         .text(`Generated on: ${moment().format('MMMM Do YYYY, h:mm:ss a')}`, 50, 100, { align: 'center' });
-  
-      generateHr(120);
-  
-      // Report details
-      const reportDetailsTop = 140;
-      const startDate = formatDate(salesData[0]?.saleDate);
-      const endDate = formatDate(salesData[salesData.length - 1]?.saleDate);
-      doc.fontSize(10)
-         .text("Report Period:", 50, reportDetailsTop)
-         .text(`From: ${startDate}`, 150, reportDetailsTop)
-         .text(`To: ${endDate}`, 300, reportDetailsTop)
-         .text("Total Orders:", 50, reportDetailsTop + 20)
-         .text(orders.length.toString(), 150, reportDetailsTop + 20)
-         .text("Total Products Sold:", 50, reportDetailsTop + 40)
-         .text(salesData.reduce((sum, sale) => sum + sale.quantity, 0).toString(), 150, reportDetailsTop + 40);
-  
-      generateHr(reportDetailsTop + 60);
-  
-      // Sales table
-      const tableTop = 240;
-      let y = tableTop;
-  
-      const generateTableRow = (y, saleId, customer, product, qty, price, total, date) => {
-        doc.fontSize(9)
-           .text(saleId, 50, y, { width: 70 })
-           .text(customer, 120, y, { width: 100 })
-           .text(product, 220, y, { width: 100 })
-           .text(qty, 320, y, { width: 50, align: 'right' })
-           .text(price, 370, y, { width: 60, align: 'right' })
-           .text(total, 430, y, { width: 60, align: 'right' })
-           .text(date, 510, y, { width: 60 });
-      };
-  
-      // Table headers
-      doc.font('Helvetica-Bold');
-      generateTableRow(y, 'Sale ID', 'Customer', 'Product', 'Qty', 'Price', 'Total', 'Date');
-      generateHr(y + 20);
-      y += 30;
-  
-      // Table rows
-      doc.font('Helvetica');
-      let totalSales = 0;
-      salesData.forEach((sale) => {
-        generateTableRow(
-          y,
-          sale.saleId.toString().slice(-6),
-          sale.customerName.slice(0, 15),
-          sale.productName.slice(0, 15),
-          sale.quantity.toString(),
-          formatCurrency(sale.price),
-          formatCurrency(sale.totalAmount),
-          formatDate(sale.saleDate)
-        );
-        totalSales += sale.totalAmount;
-        y += 20;
-        generateHr(y);
-        y += 10;
-  
-        if (y > 700) {
-          doc.addPage();
-          y = 50;
-          generateHr(y - 10);
-        }
-      });
-  
-      // Total row
-      y += 10;
-      doc.font('Helvetica-Bold');
-      generateTableRow(y, '', '', '', '', 'Total Sales:', formatCurrency(totalSales), '');
-  
-      // Footer
-      doc.fontSize(10)
-         .text(
-          "© 2024 Nashifa. All rights reserved.",
-          50,
-          730,
-          { align: "center", width: 500 }
-        );
-  
-      doc.end();
-  
-      writeStream.on('finish', () => {
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename=${path.basename(filePath)}`);
-        res.sendFile(filePath, (err) => {
-          if (err) {
-            console.error("Error sending file:", err);
-            res.status(500).send("Error downloading PDF");
-          }
-          
-        });
-      });
-  
-      writeStream.on('error', (err) => {
-        console.error("Error writing PDF:", err);
-        res.status(500).send("Error generating PDF");
-      });
-  
-    } catch (error) {
-      console.error("Error in downloadSalesReport:", error);
-      res.status(500).send("Internal Server Error");
+
+const downloadSalesReport = async (req, res) => {
+  try {
+    const orders = await Order.find().populate('orderedItem.productId').populate('userId');
+
+    const salesData = orders.flatMap(order =>
+      order.orderedItem.map(item => ({
+        saleId: order._id,
+        customerName: order.userId?.name || 'Unknown',
+        productName: item.productId?.name || 'No Product Name',
+        quantity: item.quantity,
+        price: item.productId?.price || 0,
+        totalAmount: (item.quantity * (item.productId?.price || 0)),
+        saleDate: order.createdAt
+      }))
+    );
+
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+    const reportsDir = path.join(__dirname, '../public/reports');
+
+    await fsPromises.mkdir(reportsDir, { recursive: true });
+
+    const filePath = path.join(reportsDir, `salesReport_${moment().format('YYYYMMDD_HHmmss')}.pdf`);
+    const writeStream = fs.createWriteStream(filePath);
+    doc.pipe(writeStream);
+
+   
+    const generateHr = (y) => {
+      doc.strokeColor("#aaaaaa")
+         .lineWidth(1)
+         .moveTo(50, y)
+         .lineTo(550, y)
+         .stroke();
     }
-  };
-  
 
+    const formatCurrency = (amount) => {
+      if (typeof amount !== 'number' || isNaN(amount)) {
+        return 'Rs. 0.00'; 
+      }
+      return "Rs. " + amount.toFixed(2);
+    }
+
+    const formatDate = (date) => {
+      return moment(date).format('DD/MM/YYYY');
+    }
+
+
+    let pageNumber = 1;
+    doc.on('pageAdded', () => {
+      pageNumber++;
+      doc.text(`Page ${pageNumber}`, 50, 750, { align: 'center' });
+    });
+
+
+    doc.fillColor("#444444")
+       .fontSize(28)
+       .text("Your Store Name", 50, 50, { align: 'center' })
+       .fontSize(20)
+       .text("Sales Report", 50, 80, { align: 'center' })
+       .fontSize(10)
+       .text(`Generated on: ${moment().format('MMMM Do YYYY, h:mm:ss a')}`, 50, 100, { align: 'center' });
+
+    generateHr(120);
+
+ 
+    const reportDetailsTop = 140;
+    const startDate = formatDate(salesData[0]?.saleDate);
+    const endDate = formatDate(salesData[salesData.length - 1]?.saleDate);
+    doc.fontSize(10)
+       .text("Report Period:", 50, reportDetailsTop)
+       .text(`From: ${startDate}`, 150, reportDetailsTop)
+       .text(`To: ${endDate}`, 300, reportDetailsTop)
+       .text("Total Orders:", 50, reportDetailsTop + 20)
+       .text(orders.length.toString(), 150, reportDetailsTop + 20)
+       .text("Total Products Sold:", 50, reportDetailsTop + 40)
+       .text(salesData.reduce((sum, sale) => sum + sale.quantity, 0).toString(), 150, reportDetailsTop + 40);
+
+    generateHr(reportDetailsTop + 60);
+
+  
+    const tableTop = 240;
+    let y = tableTop;
+
+    const generateTableRow = (y, saleId, customer, product, qty, price, total, date) => {
+      doc.fontSize(9)
+         .text(saleId, 50, y, { width: 70 })
+         .text(customer, 120, y, { width: 100 })
+         .text(product, 220, y, { width: 100 })
+         .text(qty.toString(), 320, y, { width: 50, align: 'right' })
+         .text(price, 370, y, { width: 60, align: 'right' })
+         .text(total, 430, y, { width: 60, align: 'right' })
+         .text(date, 510, y, { width: 60 });
+    };
+
+    
+    doc.font('Helvetica-Bold');
+    generateTableRow(y, 'Sale ID', 'Customer', 'Product', 'Qty', 'Price', 'Total', 'Date');
+    generateHr(y + 20);
+    y += 30;
+
+    doc.font('Helvetica');
+    let totalSales = 0;
+    salesData.forEach((sale) => {
+      generateTableRow(
+        y,
+        sale.saleId.toString().slice(-6),
+        sale.customerName.slice(0, 15),
+        sale.productName.slice(0, 15),
+        sale.quantity,
+        sale.price,
+        sale.totalAmount,
+        formatDate(sale.saleDate)
+      );
+      totalSales += sale.totalAmount;
+      y += 20;
+      generateHr(y);
+      y += 10;
+
+      if (y > 700) {
+        doc.addPage();
+        y = 50;
+        generateHr(y - 10);
+      }
+    });
+
+
+    y += 10;
+    doc.font('Helvetica-Bold');
+    generateTableRow(y, '', '', '', '', 'Total Sales:', totalSales, '');
+
+    doc.fontSize(10)
+       .text(
+        "© 2024 Your Store Name. All rights reserved.",
+        50,
+        730,
+        { align: "center", width: 500 }
+      );
+
+    doc.end();
+
+    writeStream.on('finish', () => {
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=${path.basename(filePath)}`);
+      res.sendFile(filePath, (err) => {
+        if (err) {
+          console.error("Error sending file:", err);
+          res.status(500).send("Error downloading PDF");
+        }
+       
+        fs.unlinkSync(filePath);
+      });
+    });
+
+    writeStream.on('error', (err) => {
+      console.error("Error writing PDF:", err);
+      res.status(500).send("Error generating PDF");
+    });
+
+  } catch (error) {
+    console.error("Error in downloadSalesReport:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
 
 
 
@@ -800,7 +874,7 @@ const updateProduct = async (req, res) => {
 
         res.status(200).json({ message: 'Coupon removed successfully' });
     } catch (error) {
-        console.log(error.message);
+    return res.status(500).send({ error: "Internal server error" });
         res.status(500).json({ error: 'Failed to remove coupon' });
     }
 }
@@ -932,8 +1006,13 @@ const removeCategoryOffer = async(req,res)=>{
 
 const loadDashboard = async (req, res) => {
   try {
-    // Fetch all orders
-    const allOrders = await Order.find();
+    const allOrders = await Order.find().populate({
+      path: 'orderedItem.productId',
+      populate: {
+        path: 'category',
+        model: 'Category'
+      }
+    });
 
     let deliveredOrders = [];
     let returnedOrders = [];
@@ -941,6 +1020,9 @@ const loadDashboard = async (req, res) => {
 
     let totalRevenue = 0;
     let currentMonthEarnings = 0;
+
+    const productPurchaseCount = {};
+    const categoryPurchaseCount = {};
 
     const now = new Date();
     const thisMonth = now.getMonth();
@@ -950,6 +1032,9 @@ const loadDashboard = async (req, res) => {
       const orderDate = new Date(order.orderDate);
 
       order.orderedItem.forEach(item => {
+        const productId = item.productId._id.toString();
+        const categoryName = (item.productId.category && item.productId.category.name) || 'Unknown';
+
         if (item.status === 'delivered') {
           deliveredOrders.push(order);
         } else if (item.status === 'returned') {
@@ -963,18 +1048,40 @@ const loadDashboard = async (req, res) => {
           if (orderDate.getMonth() === thisMonth && orderDate.getFullYear() === thisYear) {
             currentMonthEarnings += item.priceAtPurchase * item.quantity;
           }
+
+          // Count product purchases
+          if (!productPurchaseCount[productId]) {
+            productPurchaseCount[productId] = {
+              name: item.productId.name || 'Unknown',
+              count: 0
+            };
+          }
+          productPurchaseCount[productId].count += item.quantity;
+
+          // Count category purchases
+          if (!categoryPurchaseCount[categoryName]) {
+            categoryPurchaseCount[categoryName] = 0;
+          }
+          categoryPurchaseCount[categoryName] += item.quantity;
         }
       });
     });
 
-    // Calculate total number of orders, including all statuses
     const totalOrders = allOrders.length;
-
-    // Calculate returns and cancellations
     const totalReturns = returnedOrders.length;
     const totalCancellations = cancelledOrders.length;
 
-    // Prepare chart data including delivered, returned, and cancelled items
+    // Get top 10 products
+    const topProducts = Object.values(productPurchaseCount)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+
+    // Get top 10 categories
+    const topCategories = Object.entries(categoryPurchaseCount)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 10)
+      .map(([name, count]) => ({ name, count }));
+
     const chartData = {
       sales: {
         labels: ['Total Revenue'],
@@ -987,7 +1094,6 @@ const loadDashboard = async (req, res) => {
       totalOrders: totalOrders
     };
 
-    // Render dashboard view
     res.render('dashboard', {
       deliveredOrders,
       totalOrders,
@@ -995,7 +1101,9 @@ const loadDashboard = async (req, res) => {
       totalReturns,
       totalCancellations,
       monthlyEarning: currentMonthEarnings,
-      chartData: JSON.stringify(chartData)
+      chartData: JSON.stringify(chartData),
+      topProducts,
+      topCategories
     });
   } catch (error) {
     console.log("Error loading dashboard:", error);
@@ -1007,8 +1115,10 @@ const loadDashboard = async (req, res) => {
 
 
 
+
 const generateData = async (req, res) => {
   const reportType = req.query.reportType;
+  console.log("generateData called with reportType:", req.query.reportType)
   try {
     const totalOrders = await Order.countDocuments();
     const now = new Date();
@@ -1018,7 +1128,7 @@ const generateData = async (req, res) => {
 
     switch (reportType) {
       case 'daily':
-        // Logic for daily data
+       
         labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
         for (let i = 0; i < 24; i++) {
           const startHour = new Date(now);
@@ -1036,7 +1146,7 @@ const generateData = async (req, res) => {
         break;
 
       case 'weekly':
-        // Logic for weekly data
+
         for (let i = 6; i >= 0; i--) {
           const date = new Date(now);
           date.setDate(date.getDate() - i);
@@ -1057,7 +1167,7 @@ const generateData = async (req, res) => {
         break;
 
       case 'monthly':
-        // Logic for monthly data
+
         const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
         for (let i = 1; i <= daysInMonth; i++) {
           const date = new Date(now.getFullYear(), now.getMonth(), i);
@@ -1078,7 +1188,7 @@ const generateData = async (req, res) => {
         break;
 
       case 'yearly':
-        // Logic for yearly data
+
         for (let i = 0; i < 12; i++) {
           const date = new Date(now.getFullYear(), i, 1);
           labels.push(date.toLocaleDateString('en-US', { month: 'short' }));
@@ -1230,7 +1340,8 @@ module.exports = {
     removeCategoryOffer,
     generateData,
     renderReturnRequest,
-    acceptReturn
+    acceptReturn,
+    sortReport
   
 
 };

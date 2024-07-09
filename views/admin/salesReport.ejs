@@ -1,79 +1,47 @@
 <%- include('../layouts/adminheader') %>
-<div class="container mt-4" style="margin-left: 16rem;">
-  <!-- Selection Div -->
-  <div class="mb-4">
-    <select id="dateRange" class="form-select">
-      <option value="daily">Daily</option>
-      <option value="weekly">Weekly</option>
-      <option value="yearly">Yearly</option>
-      <option value="custom">Custom</option>
-    </select>
-    <input type="date" id="customDate" class="form-control" style="display: none;">
-  </div>
-  
-  <!-- Calendar -->
-  <div id="calendar" class="mb-4" style="display: none;">
-    <input type="date" id="startDate" class="form-control mb-2">
-    <input type="date" id="endDate" class="form-control">
-  </div>
-  
-  <!-- Sales Report Table -->
-  <div class="card">
-    <div class="card-body">
-      <h5 class="card-title mb-4">Sales Report</h5>
-      <div class="table-responsive" id="salesReportTable">
-        <% if (!salesData || salesData.length === 0) { %>
-          <p class="text-muted">No sales data available.</p>
-        <% } else { %>
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th>Sale ID</th>
-                <th>Customer Name</th>
-                <th>Product Image</th>
-                <th>Product Name</th>
-                <th>Quantity</th>
-                <th>Total Price</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% salesData.forEach((sale) => { %>
-                <tr>
-                  <td><%= sale.saleId %></td>
-                  <td><%= sale.customerName %></td>
-                  <td>
-                    <div style="max-width: 100px; max-height: 100px; overflow: hidden; border: 1px solid #ccc; border-radius: 5px;">
-                      <% if (sale.productImage) { %>
-                        <img src="<%= process.env.BASE_URL %>/uploads/products/<%= sale.productImage %>" alt="<%= sale.productName %> image" style="width: 100%; height: auto; object-fit: cover;">
-                      <% } else { %>
-                        <span class="text-muted">No image</span>
-                      <% } %>
-                    </div>
-                  </td>
-                  <td><%= sale.productName %></td>
-                  <td><%= sale.quantity %></td>
-                  <td>$<%= sale.totalPrice.toFixed(2) %></td>
-                  <td><%= moment(sale.saleDate).format('DD/MM/YYYY') %></td>
-                </tr>
-              <% }); %>
-            </tbody>
-          </table>
-        <% } %>
+
+<div class="container-fluid mt-4" style="margin-left: 16rem;">
+  <div class="row">
+    <div class="col-12">
+      <h2 class="mb-4">Sales Report</h2>
+      
+      <!-- Date Range Selection -->
+      <div class="mb-4">
+        <select id="dateRange" class="form-select">
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+          <option value="custom">Custom Date Range</option>
+        </select>
       </div>
-    </div>
-    <div class="card-footer">
-      <button class="btn btn-primary" id="downloadPdfBtn">Download PDF</button>
+
+      <!-- Sales Report Card -->
+      <div class="card">
+        <div class="card-body">
+          <div class="table-responsive" id="salesReportTable">
+            <!-- Table will be dynamically inserted here -->
+          </div>
+        </div>
+        <div class="card-footer">
+          <nav aria-label="Sales report pagination">
+            <ul class="pagination justify-content-center" id="pagination">
+              <!-- Pagination will be dynamically inserted here -->
+            </ul>
+          </nav>
+          <button class="btn btn-primary mt-3" id="downloadPdfBtn">Download PDF</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Modal for Custom Dates -->
+<!-- Modal for Custom Date Range -->
 <div class="modal fade" id="customDateModal" tabindex="-1" aria-labelledby="customDateModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="customDateModalLabel">Select Custom Dates</h5>
+        <h5 class="modal-title" id="customDateModalLabel">Select Custom Date Range</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -97,36 +65,36 @@
 </div>
 
 <%- include('../layouts/adminfooter') %>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
 <script>
 $(document).ready(function() {
   const dateRangeSelect = $('#dateRange');
-  const customDateInput = $('#customDate');
-  const calendarDiv = $('#calendar');
+  const customDateModal = $('#customDateModal');
+  const applyCustomDatesBtn = $('#applyCustomDates');
+  const downloadPdfBtn = $('#downloadPdfBtn');
 
   dateRangeSelect.on('change', function() {
-    if (this.value === 'custom') {
-      $('#customDateModal').modal('show');
+    const selectedRange = $(this).val();
+    if (selectedRange === 'custom') {
+      customDateModal.modal('show');
     } else {
-      customDateInput.hide();
-      calendarDiv.hide
-      // Call function to fetch and display sales report based on selected date range
-      fetchAndDisplaySalesReport(this.value);
+      fetchAndDisplaySalesReport(selectedRange);
     }
   });
 
-  $('#applyCustomDates').click(function() {
+  applyCustomDatesBtn.click(function() {
     const startDate = $('#startDateModal').val();
     const endDate = $('#endDateModal').val();
-    $('#customDateModal').modal('hide');
-    // Call function to fetch and display sales report based on custom date range
+    customDateModal.modal('hide');
     fetchAndDisplaySalesReport('custom', startDate, endDate);
   });
 
-  $('#downloadPdfBtn').click(function() {
+  downloadPdfBtn.click(function() {
     $(this).text('Generating PDF...').prop('disabled', true);
-
     fetch('/admin/downloadsalesreport')
       .then(response => {
         if (!response.ok) throw new Error('Network response was not ok');
@@ -150,24 +118,25 @@ $(document).ready(function() {
       });
   });
 
-  // Function to fetch and display sales report based on date range
-  function fetchAndDisplaySalesReport(dateRange, startDate, endDate) {
+  function fetchAndDisplaySalesReport(dateRange, startDate, endDate, page = 1) {
     $.ajax({
-      url: '/sortReport',
+      url: '/admin/sortReport',
       method: 'POST',
-      data: { dateRange, startDate, endDate },
+      data: { dateRange, startDate, endDate, page },
       success: function(response) {
+        console.log("Received response:", response);
         const salesReportTable = $('#salesReportTable');
         const salesData = response.salesData;
 
-        // Clear previous table content
         salesReportTable.empty();
 
-        // Append new table content
         if (!salesData || salesData.length === 0) {
-          salesReportTable.html('<p class="text-muted">No sales data available.</p>');
+          salesReportTable.html('<p class="text-muted">No sales data available for the selected date range.</p>');
         } else {
+          const table = $('<table class="table table-hover"></table>');
+          const tableHead = $('<thead><tr><th>Sale ID</th><th>Customer Name</th><th>Product Image</th><th>Product Name</th><th>Quantity</th><th>Total Price</th><th>Date</th></tr></thead>');
           const tableBody = $('<tbody></tbody>');
+          
           salesData.forEach(sale => {
             const row = `
               <tr>
@@ -175,25 +144,51 @@ $(document).ready(function() {
                 <td>${sale.customerName}</td>
                 <td>
                   <div style="max-width: 100px; max-height: 100px; overflow: hidden; border: 1px solid #ccc; border-radius: 5px;">
-                    ${sale.productImage ? `<img src="${process.env.BASE_URL}/uploads/products/${sale.productImage}" alt="${sale.productName} image" style="width: 100%; height: auto; object-fit: cover;">` : `<span class="text-muted">No image</span>`}
+                    ${sale.productImage ? `<img src="/uploads/products/${sale.productImage}" alt="${sale.productName} image" style="width: 100%; height: auto; object-fit: cover;">` : `<span class="text-muted">No image</span>`}
                   </div>
                 </td>
                 <td>${sale.productName}</td>
                 <td>${sale.quantity}</td>
-                <td>$${sale.totalPrice.toFixed(2)}</td>
+                <td>Rs.${sale.totalPrice.toFixed(2)}</td>
                 <td>${moment(sale.saleDate).format('DD/MM/YYYY')}</td>
               </tr>
             `;
             tableBody.append(row);
           });
-          salesReportTable.append(tableBody);
+          
+          table.append(tableHead).append(tableBody);
+          salesReportTable.append(table);
         }
+
+        updatePagination(response.totalPages, response.currentPage, dateRange, startDate, endDate);
       },
       error: function(err) {
         console.error('Error fetching and displaying sales report:', err);
-        // Handle error case
+        $('#salesReportTable').html('<p class="text-danger">Error fetching sales data. Please try again.</p>');
       }
     });
   }
+
+  function updatePagination(totalPages, currentPage, dateRange, startDate, endDate) {
+    const pagination = $('#pagination');
+    pagination.empty();
+    for (let i = 1; i <= totalPages; i++) {
+      const pageItem = `
+        <li class="page-item ${i === currentPage ? 'active' : ''}">
+          <a class="page-link" href="#" data-page="${i}">${i}</a>
+        </li>
+      `;
+      pagination.append(pageItem);
+    }
+
+    pagination.find('.page-link').on('click', function(e) {
+      e.preventDefault();
+      const page = $(this).data('page');
+      fetchAndDisplaySalesReport(dateRange, startDate, endDate, page);
+    });
+  }
+
+  // Initial load of sales report
+  fetchAndDisplaySalesReport('daily');
 });
 </script>
