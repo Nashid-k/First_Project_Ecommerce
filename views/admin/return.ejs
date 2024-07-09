@@ -25,7 +25,7 @@
               <tbody>
                 <% returnRequests.forEach((order) => { %>
                   <% order.orderedItem.forEach((item) => { %>
-                    <% if (item.status === 'Return requested') { %>
+                    <% if (item.status === 'returnrequested') { %>
                       <tr>
                         <td><%= order._id %></td>
                         <td><%= order.userId ? order.userId.name : 'Unknown' %></td>

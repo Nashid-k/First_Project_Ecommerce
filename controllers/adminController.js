@@ -1235,9 +1235,10 @@ const generateData = async (req, res) => {
 const renderReturnRequest = async(req,res)=>{
   try{
    
-  const returnRequests= await Order.find({ 'orderedItem.status': 'Return requested' })
+  const returnRequests= await Order.find({ 'orderedItem.status': 'returnrequested' })
 .populate('userId') 
 .populate('orderedItem.productId'); 
+
 
 res.render('return', { returnRequests});
   }catch(error){
@@ -1251,57 +1252,63 @@ const acceptReturn = async (req, res) => {
   const { orderId, productId } = req.body;
 
   try {
-  
-      const order = await Order.findById(orderId);
+    const order = await Order.findById(orderId);
 
-      if (!order) {
-          return res.status(404).json({ error: 'Order not found' });
-      }
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
 
+    const orderedItem = order.orderedItem.find(item => item.productId.toString() === productId);
 
-      const orderedItem = order.orderedItem.find(item => item.productId.toString() === productId);
+    if (!orderedItem) {
+      return res.status(404).json({ error: 'Product not found in order' });
+    }
 
-      if (!orderedItem) {
-          return res.status(404).json({ error: 'Product not found in order' });
-      }
+    // Ensure status comparison is case-sensitive and correct
+    if (orderedItem.status !== 'returnrequested') {
+      return res.status(400).json({ error: 'Order item is not in return requested status' });
+    }
 
-  
-      orderedItem.status = 'Returned';
+    // Update status to 'Returned'
+    orderedItem.status = 'Returned';
 
-      await order.save();
+    await order.save();
 
-     
-      const refundAmount = orderedItem.totalProductAmount;
+    const refundAmount = orderedItem.totalProductAmount;
 
-      const userId = req.session.userId;
-      const userWallet = await Wallet.findOne({ userId });
+    // Adjust user's wallet balance and add transaction record
+    const userId = req.session.userId;
+    const userWallet = await Wallet.findOne({ userId });
 
-      if (!userWallet) {
-          return res.status(404).json({ error: "Wallet not found" });
-      }
+    if (!userWallet) {
+      return res.status(404).json({ error: "Wallet not found" });
+    }
 
-      userWallet.balance += refundAmount;
-      userWallet.transactions.push({
-          amount: refundAmount,
-          transactionMethod: "Refund",
-          date: new Date(),
-      });
+    userWallet.balance += refundAmount;
+    userWallet.transactions.push({
+      amount: refundAmount,
+      transactionMethod: "Refund",
+      date: new Date(),
+    });
 
-      await userWallet.save();
+    await userWallet.save();
 
-      const product = await Products.findById(productId);
+    // Increase product quantity back in stock
+    const product = await Products.findById(productId);
 
-      if (!product) {
-          return res.status(404).json({ error: "Product not found" });
-      }
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
 
-      product.quantity += orderedItem.quantity;
-      await product.save();
-      res.status(200).json({ success: 'Return accepted successfully', refundAmount });
+    product.quantity += orderedItem.quantity;
+    await product.save();
+
+    // Respond with success message and refund amount
+    res.status(200).json({ success: 'Return accepted successfully', refundAmount });
 
   } catch (error) {
-      console.error('Error accepting return:', error.message);
-      res.status(500).json({ error: 'Internal server error' });
+    console.error('Error accepting return:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
