@@ -25,7 +25,7 @@ passport.deserializeUser((user, done) => {
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_OAUTH_CLIENT_ID,
     clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
-    callbackURL: process.env.callbackURL,
+    callbackURL: 'https://nashifa.shop/auth/callback',
     passReqToCallback: true
 }, async function (req, accessToken, refreshToken, profile, done) {
     try {
