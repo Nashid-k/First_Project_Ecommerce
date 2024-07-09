@@ -25,6 +25,14 @@ const renderLogin = async (req, res) => {
     }
 };
 
+const loadLogout = async(req,res)=>{
+  try{
+res.redirect('/admin/login')
+  }catch(error){
+    return res.status(500).send({ error: "Internal server error" });
+  }
+}
+
 const loadLogin = async (req, res) => {
     try {
        
@@ -1341,7 +1349,8 @@ module.exports = {
     generateData,
     renderReturnRequest,
     acceptReturn,
-    sortReport
+    sortReport,
+    loadLogout 
   
 
 };

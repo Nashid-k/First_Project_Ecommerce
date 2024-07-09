@@ -98,5 +98,6 @@ adminRoute.delete('/removeProductOffer/:offerId',adminController.removeProductOf
 
 adminRoute.get('/return',adminController.renderReturnRequest)
 adminRoute.post('/acceptReturn', adminController.acceptReturn);
+adminRoute.get('/logout',adminController.loadLogout)
 
 module.exports = adminRoute
