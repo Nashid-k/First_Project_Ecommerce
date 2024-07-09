@@ -421,6 +421,8 @@
   <!-- Personal info Section End -->
 
   <!-- Add your JavaScript here -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js" integrity="sha384-eMNlqljVRmFW9k4iJ9Vj8aSNYeU7Zr+Fqtwqg6AGpR9PHfsIH8r+EVjE5E4E/Mpc" crossorigin="anonymous"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy3zYbFf2L6F4iSOAZOZ/j7g5p6yl7daEQFUvrs" crossorigin="anonymous"></script>
@@ -516,9 +518,12 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script>
-  document.getElementById('initiatePayment').addEventListener('click', function(e) {
+<!-- Include Toastify library in your HTML head -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
+<script>
+  document.getElementById('retryPaymentBtn').addEventListener('click', function(e) {
     fetch('/initiatePayment', {
       method: 'POST',
       headers: {
@@ -530,7 +535,7 @@
     .then(data => {
       if (data.success) {
         var options = {
-          "key": '<%= razorpay_id %>',
+          "key": data.razorpayKey,
           "amount": data.amount,
           "currency": "INR",
           "name": "Your Company Name",
@@ -538,22 +543,79 @@
           "order_id": data.orderId,
           "handler": function(response) {
             // Handle the payment success
-            alert("Payment successful! Razorpay Payment ID: " + response.razorpay_payment_id);
+            verifyPayment(response, '<%= orderData._id %>'); // Pass orderId here
           },
-          
         };
         var rzp1 = new Razorpay(options);
         rzp1.open();
       } else {
-        alert('Payment initiation failed. Please try again.');
+        Toastify({
+          text: 'Payment initiation failed. Please try again.',
+          backgroundColor: 'linear-gradient(to right, #ff416c, #ff4b2b)',
+          duration: 3000
+        }).showToast();
       }
     })
     .catch(error => {
       console.error('Error initiating payment:', error);
-      alert('Payment initiation failed. Please try again.');
+      Toastify({
+        text: 'Payment initiation failed. Please try again.',
+        backgroundColor: 'linear-gradient(to right, #ff416c, #ff4b2b)',
+        duration: 3000
+      }).showToast();
     });
   });
+
+  function verifyPayment(response, orderId) {
+  fetch('/verifyPayment', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      razorpay_order_id: response.razorpay_order_id,
+      razorpay_payment_id: response.razorpay_payment_id,
+      razorpay_signature: response.razorpay_signature,
+      orderId: orderId // Include orderId in the request body
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Payment verification successful
+      Swal.fire({
+        icon: 'success',
+        title: 'Payment Successful',
+        text: 'Your payment has been successfully verified.',
+        confirmButtonText: 'OK'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Reload the page
+          location.reload();
+        }
+      });
+    } else {
+      // Payment verification failed
+      Swal.fire({
+        icon: 'error',
+        title: 'Payment Verification Failed',
+        text: 'There was an issue verifying your payment. Please contact support.'
+      });
+    }
+  })
+  .catch(error => {
+    console.error('Error verifying payment:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'An error occurred while verifying payment. Please try again or contact support.'
+    });
+  });
+}
+
 </script>
+
+
 
 
 

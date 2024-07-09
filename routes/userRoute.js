@@ -126,6 +126,7 @@ userRoute.get('/Wallet',walletController.renderWallet)
 userRoute.post('/add-money',walletController.addMoneyToWallet)
 
 userRoute.post('/initiatePayment',profileController.initiatePayment)
+userRoute.post('/verifyPayment', profileController.verifyPayment)
 userRoute.get('/invoice/:orderId', profileController.generateInvoice);
 userRoute.post('/addReview',profileController.addReview)
 

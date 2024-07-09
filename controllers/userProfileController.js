@@ -8,7 +8,7 @@ const Wallet = require("../models/walletModel");
 const Coupons =  require('../models/couponModel')
 const PDFDocument = require('pdfkit');
 
-
+const crypto = require('crypto');
 const { razorpay_id, razorpay_secret } = process.env
 
 const Razorpay = require("razorpay");
@@ -467,52 +467,95 @@ const renderCoupon = async (req, res) => {
 
 const initiatePayment = async (req, res) => {
     try {
-        const { orderId } = req.body;
-    
-        // Fetch order details from the database
-        const orderDetails = await Order.findById(orderId);
-    
-        if (!orderDetails) {
-          return res.status(404).json({ message: "Order not found" });
-        }
-    
-        const orderAmount = orderDetails.orderAmount;
-    
-        // Check if the order amount is valid
-        if (orderAmount < 1) {
-          return res.status(400).json({ message: "Order amount must be at least ₹1" });
-        }
-    
-        // Create a Razorpay order
-        const options = {
-          amount: Math.round(orderAmount * 100), // Amount in paise
-          currency: "INR",
-          receipt: `order_${orderId}`,
-        };
-    
-        razorpay.orders.create(options, async (err, order) => {
-          if (err) {
-            console.error(err);
-            return res.status(500).json({ message: "Failed to create Razorpay order" });
-          }
-    
-          // Update the order with Razorpay order details
-          orderDetails.razorpayOrderId = order.id;
-          await orderDetails.save();
-    
-          res.json({
-            success: true,
-            razorpayKey: process.env.RAZORPAY_KEY_ID,
-            amount: order.amount,
-            orderId: order.id,
-          });
-        });
-      } catch (error) {
-        console.log(error.message);
-        res.status(500).json({ message: "Internal server error" });
+      const { orderId } = req.body;
+  
+      // Fetch order details from the database
+      const orderDetails = await Order.findById(orderId);
+  
+      if (!orderDetails) {
+        return res.status(404).json({ message: "Order not found" });
       }
+  
+      // Check if the order is already paid
+      if (orderDetails.paymentStatus) {
+        return res.status(400).json({ message: "This order has already been paid" });
+      }
+  
+      const orderAmount = orderDetails.orderAmount;
+  
+      // Check if the order amount is valid
+      if (orderAmount < 1) {
+        return res.status(400).json({ message: "Order amount must be at least ₹1" });
+      }
+  
+      // Create a Razorpay order
+      const options = {
+        amount: Math.round(orderAmount * 100), // Amount in paise
+        currency: "INR",
+        receipt: `order_${orderId}`,
+      };
+  
+      razorpayInstance .orders.create(options, async (err, order) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ message: "Failed to create Razorpay order" });
+        }
+  
+        // Update the order with Razorpay order details
+        orderDetails.razorpayOrderId = order.id;
+        await orderDetails.save();
+  
+        res.json({
+          success: true,
+          razorpayKey: process.env.RAZORPAY_KEY_ID,
+          amount: order.amount,
+          orderId: order.id,
+        });
+      });
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  };
+  
+const verifyPayment = async (req, res) => {
+    try {
 
-};
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
+
+
+        const sign = razorpay_order_id + "|" + razorpay_payment_id;
+        const expectedSign = crypto.createHmac("sha256", razorpay_secret)
+            .update(sign.toString())
+            .digest("hex");
+
+        if (razorpay_signature === expectedSign) {
+
+            const updatedOrder = await Order.findByIdAndUpdate(orderId, { paymentStatus: true }, { new: true });
+            if (!updatedOrder) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Order not found."
+                });
+            }
+  
+        if (updatedOrder) {
+
+          updatedOrder.paymentStatus = true;
+          await updatedOrder.save();
+  
+          res.json({ success: true, message: "Payment verified and status updated" });
+        } else {
+          res.status(404).json({ success: false, message: "Order not found" });
+        }
+      } else {
+        res.status(400).json({ success: false, message: "Invalid payment verification" });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ success: false, message: "Internal server error" });
+    }
+  };
 
 
   
@@ -729,6 +772,7 @@ module.exports = {
     renderRefferal,
     renderCoupon,
     initiatePayment,
+    verifyPayment,
     generateInvoice,
     addReview
 };
