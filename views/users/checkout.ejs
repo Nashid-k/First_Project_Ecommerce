@@ -287,9 +287,13 @@ function applyCoupon() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            Swal.fire('Success', 'Coupon applied successfully', 'success');
-            document.getElementById('totalAmount').innerText = `₹ ${data.newTotal.toFixed(2)}`;
+            const currentTotal = parseFloat(document.getElementById('totalAmount').innerText.replace('₹ ', ''));
+            const newTotal = currentTotal - data.discount;
+            
+            document.getElementById('totalAmount').innerText = `₹ ${newTotal.toFixed(2)}`;
             document.getElementById('discount').innerText = `₹ ${data.discount.toFixed(2)}`;
+            
+            Swal.fire('Success', 'Coupon applied successfully', 'success');
             checkTotalAmount();
         } else {
             Swal.fire('Error', data.message || 'Error applying coupon', 'error');
@@ -324,7 +328,32 @@ function handlePlaceOrder(e) {
         deliveryChargeInput.name = 'deliveryCharge';
         deliveryChargeInput.value = deliveryCharge;
         form.appendChild(deliveryChargeInput);
-        form.submit();
+
+        fetch('/placeOrder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                selectedAddress: selectedAddress,
+                paymentMethod: paymentMethod,
+                deliveryCharge: deliveryCharge
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire('Success', 'Order placed successfully', 'success').then(() => {
+                    window.location.replace('/orderplaced');
+                });
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire('Error', 'An error occurred. Please try again.', 'error');
+        });
     }
 }
 
@@ -414,7 +443,7 @@ async function verifyPayment(response, orderId) {
 
         const verifyData = await verifyResponse.json();
         if (verifyData.success) {
-            window.location.href = `/orderplaced?orderId=${orderId}`;
+            window.location.replace(`/orderplaced`);
         } else {
             showPaymentFailedAlert();
         }

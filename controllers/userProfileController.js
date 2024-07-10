@@ -400,7 +400,7 @@ const returnOrderRequest = async (req, res) => {
             return res.status(400).json({ error: "Product is already Returned" });
         }
 
-        // Update orderedItem status and reason for return
+       
         orderedItem.status = "returnrequested";
         orderedItem.reason = returnReason;
 
@@ -436,7 +436,6 @@ const renderCoupon = async (req, res) => {
     try {
         const userId = req.session.userId;
 
-        // Fetch the user data
         const userData = await User.findById(userId);
 
         if (!userData) {
@@ -444,22 +443,19 @@ const renderCoupon = async (req, res) => {
             return res.redirect("/login");
         }
 
-        // Fetch the user's available coupons
         const userCoupons = userData.availableCoupons;
 
         if (!userCoupons || userCoupons.length === 0) {
-            // If no coupons available, render with empty couponData
             return res.render('coupons', { couponData: [], userData });
         }
 
-        // Fetch the coupon data based on the user's available coupons
         const couponData = await Coupons.find({ _id: { $in: userCoupons.map(coupon => coupon.couponId) } });
         
         res.render('coupons', { couponData, userData });
     } catch (error) {
         console.log(error.message);
         req.flash("error", "Internal server error");
-        res.redirect("/dashboard"); // Redirect to appropriate page
+        res.redirect("/dashboard"); 
     }
 }
 
@@ -469,28 +465,28 @@ const initiatePayment = async (req, res) => {
     try {
       const { orderId } = req.body;
   
-      // Fetch order details from the database
+
       const orderDetails = await Order.findById(orderId);
   
       if (!orderDetails) {
         return res.status(404).json({ message: "Order not found" });
       }
   
-      // Check if the order is already paid
+ 
       if (orderDetails.paymentStatus) {
         return res.status(400).json({ message: "This order has already been paid" });
       }
   
       const orderAmount = orderDetails.orderAmount;
   
-      // Check if the order amount is valid
+ 
       if (orderAmount < 1) {
         return res.status(400).json({ message: "Order amount must be at least ₹1" });
       }
   
-      // Create a Razorpay order
+
       const options = {
-        amount: Math.round(orderAmount * 100), // Amount in paise
+        amount: Math.round(orderAmount * 100), 
         currency: "INR",
         receipt: `order_${orderId}`,
       };
@@ -501,7 +497,7 @@ const initiatePayment = async (req, res) => {
           return res.status(500).json({ message: "Failed to create Razorpay order" });
         }
   
-        // Update the order with Razorpay order details
+        
         orderDetails.razorpayOrderId = order.id;
         await orderDetails.save();
   

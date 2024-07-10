@@ -41,6 +41,7 @@ userRoute.get('/resetotp',userController.loadResetotp)
 userRoute.post('/verifyResetOtp',userController.verifyResetOtp)
 userRoute.get('/changePassword',userController.renderChangePassword)
 userRoute.post('/resetPassword',userController.changePassword)
+userRoute.get('/orderplaced',cartController.renderOrderPlaced)
 
 
 

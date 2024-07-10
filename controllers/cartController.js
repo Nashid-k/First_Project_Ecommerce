@@ -340,11 +340,6 @@ const placeOrder = async (req, res) => {
 
         const orderAmount = subtotal + deliveryCharge;
 
-        console.log("Subtotal:", subtotal);
-        console.log("Total Product Count:", totalProductCount);
-        console.log("Delivery Charge:", deliveryCharge);
-        console.log("Order Amount:", orderAmount);
-
         if (paymentMethod === 'wallet') {
             const userWallet = await Wallet.findOne({ userId });
 
@@ -405,6 +400,10 @@ const placeOrder = async (req, res) => {
             await user.save();
         }
 
+        const removeCartItems = async () => {
+            await CartItem.deleteMany({ _id: { $in: cartId } });
+        };
+
         if (paymentMethod === "razorpay") {
             const options = {
                 amount: orderAmount * 100,
@@ -412,7 +411,7 @@ const placeOrder = async (req, res) => {
                 receipt: `order_${orderData._id}`
             };
 
-            razorpayInstance.orders.create(options, (err, order) => {
+            razorpayInstance.orders.create(options, async (err, order) => {
                 if (err) {
                     console.error(err);
                     return res.status(500).json({
@@ -420,6 +419,8 @@ const placeOrder = async (req, res) => {
                         message: "Failed to create Razorpay order."
                     });
                 }
+
+                await removeCartItems();
 
                 res.json({
                     success: true,
@@ -431,24 +432,25 @@ const placeOrder = async (req, res) => {
                 });
             });
         } else {
+            await removeCartItems();
             res.json({
                 success: true,
-                message: "Order placed successfully.",
-                orderId: orderData._id
+                message: "Order placed successfully"
             });
         }
     } catch (error) {
-        
+        console.error("Error in placeOrder:", error);
         res.status(500).json({
             success: false,
             message: "An error occurred while placing the order."
         });
     }
 };
+
+
 const verifyRazorpayPayment = async (req, res) => {
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
-
 
         const sign = razorpay_order_id + "|" + razorpay_payment_id;
         const expectedSign = crypto.createHmac("sha256", razorpay_secret)
@@ -456,7 +458,6 @@ const verifyRazorpayPayment = async (req, res) => {
             .digest("hex");
 
         if (razorpay_signature === expectedSign) {
-
             const updatedOrder = await Order.findByIdAndUpdate(orderId, { paymentStatus: true }, { new: true });
             if (!updatedOrder) {
                 return res.status(404).json({
@@ -464,7 +465,6 @@ const verifyRazorpayPayment = async (req, res) => {
                     message: "Order not found."
                 });
             }
-
             
             const cartItems = await CartItem.find({ userId: updatedOrder.userId });
             const cartItemIds = cartItems.map(item => item._id);
@@ -476,14 +476,13 @@ const verifyRazorpayPayment = async (req, res) => {
                 orderId: orderId
             });
         } else {
-      
             res.status(400).json({
                 success: false,
                 message: "Payment verification failed. Invalid signature."
             });
         }
     } catch (error) {
-    
+        console.error("Error in verifyRazorpayPayment:", error);
         res.status(500).json({
             success: false,
             message: "An error occurred while verifying payment."
@@ -643,7 +642,13 @@ const applyCoupon = async (req, res) => {
 };
 
 
-
+const renderOrderPlaced = async(req,res)=>{
+    try{
+res.render('orderplaced')
+    }catch(error){
+        return res.status(500).send({ error: "Internal server error" });
+    }
+}
 
 
 
@@ -660,5 +665,6 @@ module.exports = {
     addNewAddress,
     insertCheckoutAddress,
     removeAddress,
-    applyCoupon
+    applyCoupon,
+    renderOrderPlaced
 };
