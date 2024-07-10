@@ -386,24 +386,32 @@
   </table>
   
   <!-- Action buttons based on order status -->
-  <div class="row">
-    <div class="col-md-6"></div>
-    <div class="col-md-6 text-right">
-      <% orderData.orderedItem.forEach(item => { %>
-        <% if (item.status !== 'delivered' && item.status !== 'cancelled') { %>
-          <!-- Button to cancel order -->
-          <button type="button" class="btn btn-danger btn-custom cancel-order-btn" data-toggle="modal" data-target="#cancelOrderModal">Cancel Order</button>
-        <% } else if (item.status === 'delivered' && item.status !== 'returned') { %>
-          <!-- Show return order button -->
-          <button type="button" class="btn btn-danger btn-custom return-order-btn" data-toggle="modal" data-target="#returnOrderModal">Return Order</button>
-          <!-- Modal trigger button for add review -->
-          <button type="button" class="btn btn-primary btn-custom add-review-btn" data-toggle="modal" data-target="#addReviewModal">Add Review</button>
-          <!-- Download invoice button -->
-          <a href="/invoice/<%= orderData._id %>" class="btn btn-primary btn-custom download-invoice-btn">Download Invoice</a>
-        <% } %>
-      <% }) %>
-    </div>
+<!-- Action buttons based on order status -->
+<div class="row">
+  <div class="col-md-6"></div>
+  <div class="col-md-6 text-right">
+    <% if (orderData && specificProduct) { %>
+      <% 
+        // Get the status of the specific product
+        const productStatus = specificProduct.status.toLowerCase();
+      %>
+      
+      <% if (productStatus !== 'delivered' && productStatus !== 'cancelled' && productStatus !== 'returned') { %>
+        <!-- Button to cancel order -->
+        <button type="button" class="btn btn-danger btn-custom cancel-order-btn" data-toggle="modal" data-target="#cancelOrderModal">Cancel Order</button>
+      <% } %>
+
+      <% if (productStatus === 'delivered') { %>
+        <!-- Show return order button -->
+        <button type="button" class="btn btn-danger btn-custom return-order-btn" data-toggle="modal" data-target="#returnOrderModal">Return Order</button>
+        <!-- Modal trigger button for add review -->
+        <button type="button" class="btn btn-primary btn-custom add-review-btn" data-toggle="modal" data-target="#addReviewModal">Add Review</button>
+        <!-- Download invoice button -->
+        <a href="/invoice/<%= orderData._id %>" class="btn btn-primary btn-custom download-invoice-btn">Download Invoice</a>
+      <% } %>
+    <% } %>
   </div>
+</div>
   
   
 <% } else { %>
