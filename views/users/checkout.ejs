@@ -112,7 +112,7 @@
                 <% } else { %>
                   <p>No addresses available. Please add an address.</p>
                 <% } %>
-                <button class="btn btn-primary" id="editAddressBtn" onclick="navigateToAddAddress()">Add Address</button>
+                <button type="button" class="btn btn-primary" id="editAddressBtn" onclick="navigateToAddAddress(event)">Add Address</button>
 
 <br><br>
 
@@ -454,7 +454,7 @@ async function verifyPayment(response, orderId) {
 }
 
 function navigateToAddAddress(event) {
-    event.preventDefault(); 
-    window.location.href = '/addNewAddress'; 
+    event.preventDefault(); // Prevent any default action
+    window.location.href = '/addNewAddress'; // Navigate to the add address page
 }
 </script>

@@ -41,7 +41,7 @@ userRoute.get('/resetotp',userController.loadResetotp)
 userRoute.post('/verifyResetOtp',userController.verifyResetOtp)
 userRoute.get('/changePassword',userController.renderChangePassword)
 userRoute.post('/resetPassword',userController.changePassword)
-userRoute.get('/orderplaced',cartController.renderOrderPlaced)
+userRoute.get('/orderplaced',userAuth.is_login,cartController.renderOrderPlaced)
 
 
 
@@ -84,16 +84,16 @@ userRoute.get('/resendOtp',userAuth.is_logout,userController.resendOtp)
 
 /***************************************************** USER PROFILE ***************************************************************************************/
 
-userRoute.get('/profile',profileController.renderProfile)
-userRoute.get('/edit-profile',profileController.renderEditProfile)
-userRoute.post('/edit-profile',profileController.updateProfile)
-userRoute.get('/address',profileController.renderaddress)
-userRoute.get('/add-address',profileController.renderAddNewAddress)
-userRoute.post('/add-address',profileController.insertNewAddress)
-userRoute.get('/edit-address',profileController.renderEditAddress)
-userRoute.post('/update-address',profileController.updateAddress)
-userRoute.delete('/delete-address/:id', profileController.deleteAddress);
-userRoute.get('/coupons',profileController.renderCoupon)
+userRoute.get('/profile',userAuth.is_login,profileController.renderProfile)
+userRoute.get('/edit-profile',userAuth.is_login,profileController.renderEditProfile)
+userRoute.post('/edit-profile',userAuth.is_login,profileController.updateProfile)
+userRoute.get('/address',userAuth.is_login,profileController.renderaddress)
+userRoute.get('/add-address',userAuth.is_login,profileController.renderAddNewAddress)
+userRoute.post('/add-address',userAuth.is_login,profileController.insertNewAddress)
+userRoute.get('/edit-address',userAuth.is_login,profileController.renderEditAddress)
+userRoute.post('/update-address',userAuth.is_login,profileController.updateAddress)
+userRoute.delete('/delete-address/:id',userAuth.is_login, profileController.deleteAddress);
+userRoute.get('/coupons',userAuth.is_login,profileController.renderCoupon)
 
 
 
@@ -101,35 +101,35 @@ userRoute.get('/coupons',profileController.renderCoupon)
 
 /***************************************************** CART ***************************************************************************************/
 
-userRoute.get('/cart',cartController.renderCart)
-userRoute.get('/addToCart',cartController.addToCart)
+userRoute.get('/cart',userAuth.is_login,cartController.renderCart)
+userRoute.get('/addToCart',userAuth.is_login,cartController.addToCart)
 
-userRoute.get('/checkout',cartController.loadCheckout)
-userRoute.post('/updateCartItem',cartController.updateCartItem)
-userRoute.post('/removeCartItem',cartController.removeCartItem)
-userRoute.post('/placeOrder',cartController.placeOrder)
-userRoute.post('/applyCoupon',cartController.applyCoupon)
-userRoute.post('/verifyRazorpayPayment', cartController.verifyRazorpayPayment);
-userRoute.get('/addNewAddress',cartController.addNewAddress)
-userRoute.post('/addCheckoutAddress',cartController.insertCheckoutAddress)
-userRoute.delete('/removeAddress/:id',cartController.removeAddress)
+userRoute.get('/checkout',userAuth.is_login,cartController.loadCheckout)
+userRoute.post('/updateCartItem',userAuth.is_login,cartController.updateCartItem)
+userRoute.post('/removeCartItem',userAuth.is_login,cartController.removeCartItem)
+userRoute.post('/placeOrder',userAuth.is_login,cartController.placeOrder)
+userRoute.post('/applyCoupon',userAuth.is_login,cartController.applyCoupon)
+userRoute.post('/verifyRazorpayPayment',userAuth.is_login, cartController.verifyRazorpayPayment);
+userRoute.get('/addNewAddress',userAuth.is_login,cartController.addNewAddress)
+userRoute.post('/addCheckoutAddress',userAuth.is_login,cartController.insertCheckoutAddress)
+userRoute.delete('/removeAddress/:id',userAuth.is_login,cartController.removeAddress)
 
 
 userRoute.get('/myOrders',userAuth.is_login,profileController.renderMyOrder)
 userRoute.get('/orderDetails',userAuth.is_login,profileController.renderOrderDetails)
-userRoute.post('/cancelOrder', profileController.cancelOrder);
-userRoute.get('/refferal',profileController.renderRefferal)
-userRoute.post('/returnOrder',profileController.returnOrderRequest)
+userRoute.post('/cancelOrder', userAuth.is_login,profileController.cancelOrder);
+userRoute.get('/refferal',userAuth.is_login,profileController.renderRefferal)
+userRoute.post('/returnOrder',userAuth.is_login,profileController.returnOrderRequest)
 
 
 
-userRoute.get('/Wallet',walletController.renderWallet)
-userRoute.post('/add-money',walletController.addMoneyToWallet)
+userRoute.get('/Wallet',userAuth.is_login,walletController.renderWallet)
+userRoute.post('/add-money',userAuth.is_login,walletController.addMoneyToWallet)
 
-userRoute.post('/initiatePayment',profileController.initiatePayment)
-userRoute.post('/verifyPayment', profileController.verifyPayment)
-userRoute.get('/invoice/:orderId', profileController.generateInvoice);
-userRoute.post('/addReview',profileController.addReview)
+userRoute.post('/initiatePayment',userAuth.is_login,profileController.initiatePayment)
+userRoute.post('/verifyPayment', userAuth.is_login,profileController.verifyPayment)
+userRoute.get('/invoice/:orderId', userAuth.is_login,profileController.generateInvoice);
+userRoute.post('/addReview',userAuth.is_login,profileController.addReview)
 
 
 userRoute.get('*', (req, res, next) => {
