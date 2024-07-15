@@ -1,6 +1,6 @@
 <%- include('../layouts/adminheader') %>
 <div class="container" style="margin-left: 120px;">
-  <!-- Orders Table -->
+
   <div class="card" style="margin-left: 120px;">
     <div class="card-body">
       <h5 class="card-title mb-4">Orders</h5>
@@ -25,7 +25,7 @@
                   <% order.orderedItem.forEach((item) => { %>
                     <tr>
                       <td><%= order._id %></td>
-                      <td><%= order.userId ? order.userId.name : 'Unknown' %></td>
+                      <td><%= order.userId && order.userId.name ? order.userId.name : 'Unknown' %></td>
                       <td>
                         <div style="max-width: 100px; max-height: 100px; overflow: hidden; border: 1px solid #ccc; border-radius: 5px;">
                           <% if (item.productId && item.productId.mainImage) { %>
@@ -35,12 +35,16 @@
                           <% } %>
                         </div>
                       </td>
-                      <td><%= item.productId ? item.productId.name : 'No Product Name' %></td>
+                      <td><%= item.productId && item.productId.name ? item.productId.name : 'No Product Name' %></td>
                       <td>
-                        <span class="badge status-label <%= item.status.toLowerCase() %>"><%= item.status %></span>
+                        <span class="badge status-label <%= item.status ? item.status.toLowerCase() : '' %>"><%= item.status %></span>
                       </td>
                       <td>
-                        <a href="/admin/orderDetails/?productId=<%= item.productId._id %>&userId=<%= order.userId._id %>" class="btn btn-primary btn-sm">View Details</a>
+                        <% if (item.productId && item.productId._id && order.userId && order.userId._id) { %>
+                          <a href="/admin/orderDetails/?productId=<%= item.productId._id %>&userId=<%= order.userId._id %>" class="btn btn-primary btn-sm">View Details</a>
+                        <% } else { %>
+                          <span>N/A</span>
+                        <% } %>
                       </td>
                     </tr>
                   <% }); %>
@@ -58,26 +62,26 @@
 <style>
   .table-container {
     position: relative;
-    overflow-x: auto; /* Add horizontal scroll for small screens */
+    overflow-x: auto;
   }
 
-  /* Define colors for each status */
+ 
   .status-label.returned {
-    background-color: #dc3545; /* Red */
+    background-color: #dc3545;
   }
   .status-label.pending {
-    background-color: #ffc107; /* Yellow */
+    background-color: #ffc107;
   }
   .status-label.confirmed {
-    background-color: #0d6efd; /* Blue */
+    background-color: #0d6efd; 
   }
   .status-label.shipped {
-    background-color: #198754; /* Green */
+    background-color: #198754; 
   }
   .status-label.delivered {
-    background-color: #198754; /* Green */
+    background-color: #198754; 
   }
   .status-label.cancelled {
-    background-color: #dc3545; /* Red */
+    background-color: #dc3545; 
   }
 </style>

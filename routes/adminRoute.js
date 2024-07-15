@@ -102,7 +102,7 @@ adminRoute.get('/orders',adminAuth.is_login,orderController.renderOrders)
 adminRoute.post('/updateProductStatus',adminAuth.is_login,orderController.updateOrderStatus)
 adminRoute.get('/orderDetails',adminAuth.is_login,orderController.orderDetails)
 adminRoute.get('/return',adminAuth.is_login,orderController.renderReturnRequest)
-adminRoute.post('/acceptReturn',orderController.acceptReturn);
+adminRoute.post('/acceptReturn',adminAuth.is_login,orderController.acceptReturn);
 
 
 module.exports = adminRoute

@@ -4,14 +4,14 @@ const User = require('../models/userModel');
 const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');
 const crypto = require('crypto');
-
+const Wallet = require('../models/walletModel')
 dotenv.config();
 
 
 function generateReferralCode(length = 8) {
     return crypto.randomBytes(Math.ceil(length / 2))
-        .toString('hex') // Convert to hexadecimal format
-        .slice(0, length); // Return the required number of characters
+        .toString('hex') 
+        .slice(0, length);
 }
 
 passport.serializeUser((user, done) => {
@@ -49,6 +49,13 @@ passport.use(new GoogleStrategy({
                 referral_code: newReferralCode,
             });
             await user.save();
+
+            const wallet = new Wallet({
+                userId: user._id, 
+            balance: 0, 
+            transactions: [] 
+            })
+           await  wallet.save()
         }
 
         done(null, user);
