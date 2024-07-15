@@ -11,103 +11,7 @@ const Wallet = require("../models/walletModel");
 const ProductOffer = require("../models/productOffer");
 const CategoryOffer = require("../models/categoryOffer");
 
-function generateOTP() {
-  return String(Math.floor(1000 + Math.random() * 9000));
-}
 
-function generateReferralCode(length = 8) {
-  return crypto
-    .randomBytes(Math.ceil(length / 2))
-    .toString("hex") // Convert to hexadecimal format
-    .slice(0, length); // Return the required number of characters
-}
-
-const sendPassResetMail = async (name, email, otp) => {
-  try {
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      requireTLS: true,
-      auth: {
-        user: process.env.NODE_USER,
-        pass: process.env.NODE_PASS,
-      },
-    });
-    const mailOptions = {
-      from: process.env.NODE_USER,
-      to: email,
-      subject: "Reset Password OTP",
-      html: `
-            <p>Dear ${name},</p>
-            <p>We received a request to reset the password for your Nashifa account.</p>
-            <p>To proceed with resetting your password, please use the following One-Time Password (OTP):</p>
-            <h2>OTP: ${otp}</h2>
-            <p>This OTP is valid for 1 minute only. If you didn't request this OTP, please ignore this email.</p>
-            <p>If you need any assistance, please don't hesitate to contact us at nashifa4u@gmail.com or call us at 8281142958.</p>
-            <p>Best regards,<br>Nashifa Team</p>
-            `,
-    };
-    transporter.sendMail(mailOptions, function (error, info) {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log(`Generated otp : ${otp}`);
-      }
-    });
-  } catch (error) {
-    console.log(error.message);
-  }
-};
-
-const securePassword = async (password) => {
-  try {
-    const passwordHash = await bcrypt.hash(password, 8);
-    return passwordHash;
-  } catch (error) {
-    console.log(error.message);
-  }
-};
-
-const sendVerifyMail = async (name, email, user_id, otp) => {
-  try {
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      requireTLS: true,
-      auth: {
-        user: process.env.NODE_USER,
-        pass: process.env.NODE_PASS,
-      },
-    });
-
-    const mailOptions = {
-      from: process.env.NODE_USER,
-      to: email,
-      subject: "Your Nashifa Account Verification OTP",
-      html: `
-            <p>Dear ${name},</p>
-            <p>Welcome to Nashifa, your fashion destination!</p>
-            <p>To complete your registration and ensure the security of your account, please use the following One-Time Password (OTP):</p>
-            <h2>OTP: ${otp}</h2>
-            <p>Please enter this code within 1 minute. If you didn't request this OTP, kindly disregard this email.</p>
-            <p>Need help? Reach out to us at nashifa4u@gmail.com or call us at 8281142958.</p>
-            <p>Best regards,<br>Nashifa Team</p>
-            `,
-    };
-
-    transporter.sendMail(mailOptions, function (error, info) {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log(`Generated otp : ${otp}`);
-      }
-    });
-  } catch (error) {
-    console.log(error.message);
-  }
-};
 
 const renderHome = async (req, res) => {
   try {
@@ -283,12 +187,6 @@ const renderHome = async (req, res) => {
   }
 };
 
-
-
-
-
-
-
 const renderShop = async (req, res) => {
   try {
     const userId = req.session.userId;
@@ -449,7 +347,6 @@ const renderProductDetails = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 };
-
 
 const renderWomen = async (req, res) => {
   try {
@@ -636,8 +533,6 @@ const sortProducts = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-
-
 
 const addToWishlist = async (req, res) => {
   try {
