@@ -3,16 +3,34 @@ const Order=require('../models/orderModel')
 const Wallet = require('../models/walletModel')
 
 
-const renderOrders = async(req,res)=>{
-    try{
-  const orderData = await Order.find().populate("orderedItem.productId").populate('userId')
+const renderOrders = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 2;
+    const skip = (page - 1) * limit;
 
-    res.render('order',{orderData})
-    }catch(error){
+    const totalOrders = await Order.countDocuments();
+    const totalPages = Math.ceil(totalOrders / limit);
+
+    const orderData = await Order.find()
+      .populate("orderedItem.productId")
+      .populate('userId')
+      .skip(skip)
+      .limit(limit);
+
+    res.render('order', {
+      orderData,
+      currentPage: page,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+      nextPage: page + 1,
+      previousPage: page - 1,
+    });
+  } catch (error) {
     return res.status(500).send({ error: "Internal server error" });
-    }
   }
-
+};
 
 
   const updateOrderStatus = async (req, res) => {

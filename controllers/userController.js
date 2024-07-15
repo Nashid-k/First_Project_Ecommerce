@@ -1,13 +1,7 @@
 const User = require("../models/userModel");
-const nodemailer = require("nodemailer");
-const Otp = require("../models/otpModel");
-const bcrypt = require("bcrypt");
 const Products = require("../models/productModel");
 const Category = require("../models/categoryModel");
-const CartItem = require("../models/cartModel");
 const WishlistItem = require("../models/wishlistModel");
-const crypto = require("crypto");
-const Wallet = require("../models/walletModel");
 const ProductOffer = require("../models/productOffer");
 const CategoryOffer = require("../models/categoryOffer");
 

@@ -114,55 +114,7 @@ const unblockUser = async (req, res) => {
   }
 };
 
-const getQueryByDateRange = (dateRange, startDate, endDate) => {
-  let query = {};
-  const now = moment();
 
-  if (dateRange === "custom" && startDate && endDate) {
-    query = {
-      createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) },
-    };
-  } else if (dateRange === "daily") {
-    query = {
-      createdAt: {
-        $gte: now.startOf("day").toDate(),
-        $lte: now.endOf("day").toDate(),
-      },
-    };
-  } else if (dateRange === "weekly") {
-    query = {
-      createdAt: {
-        $gte: now.startOf("week").toDate(),
-        $lte: now.endOf("week").toDate(),
-      },
-    };
-  } else if (dateRange === "yearly") {
-    query = {
-      createdAt: {
-        $gte: now.startOf("year").toDate(),
-        $lte: now.endOf("year").toDate(),
-      },
-    };
-  }
-
-  console.log("Generated query:", query);
-  return query;
-};
-const getOrderedItems = (orders) => {
-  return orders.flatMap((order) =>
-    order.orderedItem.map((item) => ({
-      saleId: order._id,
-      customerName: order.userId?.name || "Unknown",
-      productName: item.productId?.name || "No Product Name",
-      productImage: item.productId?.mainImage || "",
-      quantity: item.quantity,
-      totalPrice: item.totalProductAmount,
-      saleDate: order.createdAt,
-      itemStatus: item.status || "Pending",
-      deliveryAddress: order.deliveryAddress?.address || "Unknown",
-    }))
-  );
-};
 
 const loadDashboard = async (req, res) => {
   try {

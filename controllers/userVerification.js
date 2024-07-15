@@ -2,14 +2,9 @@ const User = require("../models/userModel");
 const nodemailer = require("nodemailer");
 const Otp = require("../models/otpModel");
 const bcrypt = require("bcrypt");
-const Products = require("../models/productModel");
-const Category = require("../models/categoryModel");
-const CartItem = require("../models/cartModel");
-const WishlistItem = require("../models/wishlistModel");
 const crypto = require("crypto");
 const Wallet = require("../models/walletModel");
-const ProductOffer = require("../models/productOffer");
-const CategoryOffer = require("../models/categoryOffer");
+
 
 function generateOTP() {
     return String(Math.floor(1000 + Math.random() * 9000));
@@ -18,8 +13,8 @@ function generateOTP() {
   function generateReferralCode(length = 8) {
     return crypto
       .randomBytes(Math.ceil(length / 2))
-      .toString("hex") // Convert to hexadecimal format
-      .slice(0, length); // Return the required number of characters
+      .toString("hex") 
+      .slice(0, length); 
   }
   
   const sendPassResetMail = async (name, email, otp) => {
@@ -69,7 +64,7 @@ function generateOTP() {
     }
   };
   
-  const sendVerifyMail = async (name, email, user_id, otp) => {
+const sendVerifyMail = async (name, email, user_id, otp) => {
     try {
       const transporter = nodemailer.createTransport({
         host: "smtp.gmail.com",
