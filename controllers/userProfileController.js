@@ -1,16 +1,12 @@
 const Products = require('../models/productModel')
-const bcrypt = require("bcrypt");
 const User = require("../models/userModel");
 const Address = require("../models/userAddress");
-const { findById } = require("../models/productModel");
 const Order = require("../models/orderModel");
 const Wallet = require("../models/walletModel");
 const Coupons =  require('../models/couponModel')
 const PDFDocument = require('pdfkit');
-
 const crypto = require('crypto');
 const { razorpay_id, razorpay_secret } = process.env
-
 const Razorpay = require("razorpay");
 
 
@@ -340,7 +336,7 @@ const cancelOrder = async (req, res) => {
         const refundAmount = orderedItem.totalProductAmount;
 
         orderedItem.status = "Cancelled";
-        orderedItem.reason = cancelReason; // Change reasongForCancel to reason
+        orderedItem.reason = cancelReason; 
         await order.save();
 
         const userWallet = await Wallet.findOne({ userId });
