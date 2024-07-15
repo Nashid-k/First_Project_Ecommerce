@@ -17,8 +17,6 @@ const renderOrders = async(req,res)=>{
 
   const updateOrderStatus = async (req, res) => {
     const { orderId, productId, productStatus } = req.body;
-  
-    // console.log(`Order ID: ${orderId}, Product ID: ${productId}, Status: ${productStatus}`);
     try {
       const order = await Order.findById(orderId);
       if (!order) {

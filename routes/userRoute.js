@@ -4,7 +4,7 @@ const profileController = require('../controllers/userProfileController')
 const userController = require('../controllers/userController')
 const cartController = require('../controllers/cartController')
 const walletController =require('../controllers/walletController')
-
+const userVerificationController = require('../controllers/userVerification')
 userRoute.set('views','./views/users')
 
 const userAuth = require('../middlewares/userAuth')
@@ -27,27 +27,32 @@ userRoute.get('/RemoveFromWishlist',userController.RemoveFromWishlist)
 
 
 
-/***************************************************** USER SIGNUP,SIGN IN,LOGOUT ***************************************************************************************/
+/***************************************************** USER SIGNUP,SIGN IN,LOGOUT ,OTP ***************************************************************************************/
 
-userRoute.get('/signUp',userAuth.is_logout,userController.renderSignUp)
-userRoute.post('/signUp',userController.insertUser)
-userRoute.get('/login',userAuth.is_logout,userController.renderLogin)
-userRoute.post('/login',userController.verifyLogin)
-userRoute.get('/logout',userAuth.is_login,userController.logout)
-userRoute.get('/forgotPassword',userController.renderForgotPassword)
-userRoute.post('/findAccount',userController.findAccount)
-userRoute.post('/verifyAccount',userController.sendOtp)
-userRoute.get('/resetotp',userController.loadResetotp)
-userRoute.post('/verifyResetOtp',userController.verifyResetOtp)
-userRoute.get('/changePassword',userController.renderChangePassword)
-userRoute.post('/resetPassword',userController.changePassword)
+userRoute.get('/signUp',userAuth.is_logout,userVerificationController.renderSignUp)
+userRoute.post('/signUp',userVerificationController.insertUser)
+userRoute.get('/login',userAuth.is_logout,userVerificationController.renderLogin)
+userRoute.post('/login',userVerificationController.verifyLogin)
+userRoute.get('/logout',userAuth.is_login,userVerificationController.logout)
+userRoute.get('/forgotPassword',userVerificationController.renderForgotPassword)
+userRoute.post('/findAccount',userVerificationController.findAccount)
+userRoute.post('/verifyAccount',userVerificationController.sendOtp)
+userRoute.get('/resetotp',userVerificationController.loadResetotp)
+userRoute.post('/verifyResetOtp',userVerificationController.verifyResetOtp)
+userRoute.get('/changePassword',userVerificationController.renderChangePassword)
+userRoute.post('/resetPassword',userVerificationController.changePassword)
+userRoute.get('/otp',userAuth.is_logout,userVerificationController.renderOtp)
+userRoute.post('/verifyOTP',userVerificationController.verifyOtp);
+userRoute.get('/resendOtp',userAuth.is_logout,userVerificationController.resendOtp)
+
+
 userRoute.get('/orderplaced',userAuth.is_login,cartController.renderOrderPlaced)
 
 
 
-const { renderHome } = require('../controllers/userController'); // Adjust the path as necessary
+const { renderHome } = require('../controllers/userController');
 
-// Google OAuth Routes
+
 userRoute.get('/auth', passport.authenticate('google', { scope: ['email', 'profile'] }));
 
 userRoute.get('/auth/google/callback', 
@@ -72,13 +77,6 @@ userRoute.get('/auth/callback/failure', (req, res) => {
    req.flash('error', 'You are not authenticated to log in');
    res.redirect('/login');
 });
-
-/***************************************************** OTP ***************************************************************************************/
-
-userRoute.get('/otp',userAuth.is_logout,userController.renderOtp)
-userRoute.post('/verifyOTP',userController.verifyOtp);
-userRoute.get('/resendOtp',userAuth.is_logout,userController.resendOtp)
-
 
 
 

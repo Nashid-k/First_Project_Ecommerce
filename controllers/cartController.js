@@ -23,7 +23,7 @@ const addToCart = async (req, res) => {
     const userId = req.session.userId;
     const { productId } = req.query;
 
-    // Retrieve product details
+
     const product = await Products.findById(productId);
     if (!product) {
       return res.status(404).send("Product not found");
@@ -32,17 +32,17 @@ const addToCart = async (req, res) => {
     const price = product.price;
     const discount = product.discount || 0;
 
-    // Calculate discounted price and round to nearest integer
+ 
     const discountedPrice = Math.round(price - price * (discount / 100));
 
-    // Check if the product already exists in the cart for the user
+
     let cartItem = await CartItem.findOne({
       userId: userId,
       "product.productId": productId,
     });
 
     if (!cartItem) {
-      // If no cart item exists, create a new one
+
       cartItem = new CartItem({
         userId: userId,
         product: [
@@ -72,7 +72,7 @@ const addToCart = async (req, res) => {
       }
     }
 
-    // Save the updated or new cart item
+
     await cartItem.save();
 
     res.redirect("/cart");
@@ -95,11 +95,11 @@ const renderCart = async (req, res) => {
       "product.productId"
     );
 
-    // Recalculate the total price for each cart item and round to nearest integer
+
     const updatedCartItems = cartItems.map((item) => {
       item.product = item.product.map((prod) => {
-        const unitPrice = prod.price / prod.quantity; // Get the unit price
-        prod.totalPrice = Math.round(unitPrice * prod.quantity); // Recalculate and round total price
+        const unitPrice = prod.price / prod.quantity; 
+        prod.totalPrice = Math.round(unitPrice * prod.quantity); 
         return prod;
       });
       return item;
@@ -121,7 +121,7 @@ const updateCartItem = async (req, res) => {
     const userId = req.session.userId;
     const { productId, quantityChange } = req.body;
 
-    // Find all cart items for the user
+
     const cartItems = await CartItem.find({ userId }).populate(
       "product.productId"
     );
@@ -132,7 +132,7 @@ const updateCartItem = async (req, res) => {
         .json({ message: "No cart items found for the user" });
     }
 
-    // Find the cart item to update
+
     const cartItemToUpdate = cartItems.find(
       (item) => item.product[0].productId.toString() === productId
     );
@@ -150,17 +150,17 @@ const updateCartItem = async (req, res) => {
         .json({ message: "Quantity cannot be less than 1" });
     }
 
-    // Check if the updated quantity exceeds available stock
+
     const currentProduct = await Products.findById(product.productId);
     if (newQuantity > currentProduct.quantity) {
       return res.status(400).json({ message: "Not enough stock available" });
     }
 
-    // Calculate new total price based on the updated quantity and round to nearest integer
-    const unitPrice = product.totalPrice / product.quantity; // Calculate unit price
+
+    const unitPrice = product.totalPrice / product.quantity; 
     const newTotalPrice = Math.round(unitPrice * newQuantity);
 
-    // Update the cart item
+ 
     await CartItem.findOneAndUpdate(
       { _id: cartItemToUpdate._id, "product.productId": product.productId },
       {
@@ -172,7 +172,7 @@ const updateCartItem = async (req, res) => {
       { new: true }
     );
 
-    // Fetch updated cart items after update
+
     const updatedCartItems = await CartItem.find({ userId }).populate(
       "product.productId"
     );
