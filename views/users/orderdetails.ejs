@@ -340,6 +340,7 @@
           <% } %>
           <!-- Display order date -->
           <p><strong>Order Date:</strong> <%= new Date(orderData.createdAt).toLocaleDateString() %></p>
+          <p><strong>Delivery Charge:</strong>  ₹<%= orderData.deliveryCharge %></p>
       </div>
       <!-- Display other order details such as total amount, payment method, delivery address -->
       <div class="col-md-6">

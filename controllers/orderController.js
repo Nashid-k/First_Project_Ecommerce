@@ -68,7 +68,8 @@ const renderOrders = async (req, res) => {
         const order = await Order.findOne({ 'orderedItem.productId': productId, userId: userId })
             .populate('orderedItem.productId')
             .populate('userId')
-            .populate('deliveryAddress');
+            .populate('deliveryAddress')
+            .populate('deliveryCharge')
 
         if (!order) {
             return res.status(404).send("Order not found");
