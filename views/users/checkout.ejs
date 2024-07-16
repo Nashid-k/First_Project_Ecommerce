@@ -312,6 +312,16 @@ function handlePlaceOrder(e) {
     const deliveryChargeElement = document.getElementById('deliveryCharge');
     const deliveryCharge = parseFloat(deliveryChargeElement.innerText.replace('₹ ', '').trim()) || 0;
 
+    // Get subtotal, discount, and total
+    const subtotalElement = document.querySelector('.checkout__order__total ul li:first-child span');
+    const subtotal = parseFloat(subtotalElement.innerText.replace('₹ ', '').trim());
+
+    const discountElement = document.getElementById('discount');
+    const discount = parseFloat(discountElement.innerText.replace('₹ ', '').trim()) || 0;
+
+    const totalElement = document.getElementById('totalAmount');
+    const total = parseFloat(totalElement.innerText.replace('₹ ', '').trim());
+
     if (!selectedAddress) {
         return Swal.fire('Error', 'Please select a delivery address.', 'error');
     }
@@ -320,15 +330,8 @@ function handlePlaceOrder(e) {
     }
 
     if (paymentMethod === 'razorpay') {
-        handleRazorpayPayment(selectedAddress, deliveryCharge);
+        handleRazorpayPayment(selectedAddress, deliveryCharge, subtotal, discount, total);
     } else {
-        const form = document.querySelector('.checkout__form');
-        const deliveryChargeInput = document.createElement('input');
-        deliveryChargeInput.type = 'hidden';
-        deliveryChargeInput.name = 'deliveryCharge';
-        deliveryChargeInput.value = deliveryCharge;
-        form.appendChild(deliveryChargeInput);
-
         fetch('/placeOrder', {
             method: 'POST',
             headers: {
@@ -337,7 +340,10 @@ function handlePlaceOrder(e) {
             body: JSON.stringify({
                 selectedAddress: selectedAddress,
                 paymentMethod: paymentMethod,
-                deliveryCharge: deliveryCharge
+                deliveryCharge: deliveryCharge,
+                subtotal: subtotal,
+                discount: discount,
+                total: total
             })
         })
         .then(response => response.json())
@@ -357,7 +363,7 @@ function handlePlaceOrder(e) {
     }
 }
 
-async function handleRazorpayPayment(selectedAddress, deliveryCharge) {
+async function handleRazorpayPayment(selectedAddress, deliveryCharge, subtotal, discount, total) {
     try {
         const response = await fetch('/placeOrder', {
             method: 'POST',
@@ -367,7 +373,10 @@ async function handleRazorpayPayment(selectedAddress, deliveryCharge) {
             body: JSON.stringify({
                 selectedAddress: selectedAddress,
                 paymentMethod: 'razorpay',
-                deliveryCharge: deliveryCharge
+                deliveryCharge: deliveryCharge,
+                subtotal: subtotal,
+                discount: discount,
+                total: total
             })
         });
 
@@ -410,6 +419,7 @@ async function handleRazorpayPayment(selectedAddress, deliveryCharge) {
         showPaymentFailedAlert();
     }
 }
+
 
 function showPaymentFailedAlert() {
     Swal.fire({

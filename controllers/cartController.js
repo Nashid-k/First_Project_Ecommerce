@@ -228,7 +228,7 @@ const loadCheckout = async (req, res) => {
 
     cartItems.forEach((cartItem) => {
       cartItem.product.forEach((product) => {
-        subtotal += product.totalPrice * product.quantity;
+        subtotal += product.totalPrice ;
         totalProductCount += product.quantity;
       });
     });
@@ -246,10 +246,7 @@ const loadCheckout = async (req, res) => {
 
     const total = subtotal + deliveryCharge;
 
-    console.log("Subtotal:", subtotal);
-    console.log("Total Product Count:", totalProductCount);
-    console.log("Delivery Charge:", deliveryCharge);
-    console.log("Total:", total);
+
 
     res.render("checkout", {
       cartItems,
@@ -280,7 +277,8 @@ const placeOrder = async (req, res) => {
       });
     }
 
-    const { selectedAddress, paymentMethod, couponCode } = req.body;
+    const { selectedAddress, paymentMethod, subtotal, discount, deliveryCharge, total, couponCode } = req.body;
+
 
     if (!selectedAddress) {
       return res.status(400).json({
@@ -304,99 +302,67 @@ const placeOrder = async (req, res) => {
       });
     }
 
-    let subtotal = 0;
-    let totalProductCount = 0;
     const orderedItems = [];
-
+    const currentOffers = await ProductOffer.find();
+    const currentCategoryOffers = await CategoryOffer.find();
+    
     for (const cartItem of cartItems) {
       for (const productItem of cartItem.product) {
-        const product = await Products.findById(productItem.productId);
-
+        const product = await Products.findById(productItem.productId).populate('category');
         if (!product) {
           return res.status(404).json({
             success: false,
             message: `Product not found with ID: ${productItem.productId}`,
           });
         }
-
         if (product.quantity < productItem.quantity) {
           return res.status(400).json({
             success: false,
             message: `Insufficient stock for product: ${product.name}`,
           });
         }
-
-        // Fetch applicable offers
-        const productOffer = await ProductOffer.findOne({
-          productId: productItem.productId,
-          startDate: { $lte: new Date() },
-          endDate: { $gte: new Date() },
-        });
-
-        const categoryOffer = await CategoryOffer.findOne({
-          categoryId: product.categoryId,
-          startDate: { $lte: new Date() },
-          endDate: { $gte: new Date() },
-        });
-
-        // Calculate discounted price
-        let priceAtPurchase = product.price;
+    
+        let discountedPrice = product.price;
+        let appliedDiscount = 0;
+    
+        // Check for product-specific offer
+        const productOffer = currentOffers.find(
+          offer => offer.productId.toString() === product._id.toString()
+        );
         if (productOffer) {
-          priceAtPurchase -= (priceAtPurchase * productOffer.discountValue) / 100;
-        } else if (categoryOffer) {
-          priceAtPurchase -= (priceAtPurchase * categoryOffer.discountValue) / 100;
+          appliedDiscount = Math.max(appliedDiscount, productOffer.discountValue);
         }
-
-        const itemSubtotal = priceAtPurchase * productItem.quantity;
-
-        subtotal += itemSubtotal;
-        totalProductCount += productItem.quantity;
-
+    
+        // Check for category offer
+        const categoryOffer = currentCategoryOffers.find(
+          offer => offer.categoryId.toString() === product.category._id.toString()
+        );
+        if (categoryOffer) {
+          appliedDiscount = Math.max(appliedDiscount, categoryOffer.discountValue);
+        }
+    
+        if (appliedDiscount > 0) {
+          discountedPrice = Math.ceil(product.price - (product.price * appliedDiscount) / 100);
+        }
+    
+        console.log('Product:', product.name);
+        console.log('Original Price:', product.price);
+        console.log('Applied Discount:', appliedDiscount);
+        console.log('Discounted Price:', discountedPrice);
+    
         orderedItems.push({
           productId: productItem.productId,
           quantity: productItem.quantity,
-          priceAtPurchase,
-          totalProductAmount: itemSubtotal,
+          priceAtPurchase: discountedPrice,
+          totalProductAmount: discountedPrice * productItem.quantity,
+          status: 'pending'
         });
-
+    
         product.quantity -= productItem.quantity;
         await product.save();
       }
     }
-
-    let deliveryCharge = 0;
-    if (totalProductCount === 1) {
-      if (subtotal < 10000) {
-        deliveryCharge = 25;
-      } else if (subtotal < 40000) {
-        deliveryCharge = 50;
-      } else if (subtotal < 60000) {
-        deliveryCharge = 100;
-      }
-    }
-
-    let orderAmount = subtotal + deliveryCharge;
-
-    // Apply coupon discount if coupon code is provided
-    if (couponCode) {
-      const coupon = await Coupon.findOne({
-        code: couponCode,
-        minPurchaseAmount: { $lte: orderAmount },
-        validity: { $gte: new Date() },
-      });
-      console.log(coupon + ' is the coupon');
-
-      if (coupon) {
-        if (coupon.discountType === 'percentage') {
-          const couponDiscount = (orderAmount * coupon.discountValue) / 100;
-          orderAmount -= couponDiscount; // Deduct the coupon discount from orderAmount
-          console.log(orderAmount + 'dfjhdskjlfh');
-        } else if (coupon.discountType === 'fixed') {
-          orderAmount -= coupon.discountValue; // Deduct the fixed coupon discount from orderAmount
-                    console.log(orderAmount + 'dfjhdskjlfh');
-        }
-      }
-    }
+    const orderAmount = total;
 
     if (paymentMethod === "wallet") {
       const userWallet = await Wallet.findOne({ userId });
@@ -426,42 +392,20 @@ const placeOrder = async (req, res) => {
     }
 
     const orderData = new Order({
-      cartId,
       userId,
+      cartId,
       orderedItem: orderedItems,
       orderAmount,
-      deliveryCharge,
+      orderDate: new Date(),
       deliveryAddress: selectedAddress,
+      deliveryCharge,
       paymentMethod,
+      coupon: couponCode,
+      discount,
       paymentStatus: paymentMethod !== "razorpay",
-      orderDate: Date.now(),
-      priceAtPurchase: orderedItems.map((item) => item.priceAtPurchase),
     });
 
     await orderData.save();
-
-    // Add eligible coupons to user's available coupons
-    const eligibleCoupons = await Coupon.find({
-      minPurchaseAmount: { $lte: orderAmount },
-    });
-
-    if (eligibleCoupons.length > 0) {
-      const user = await User.findById(userId);
-
-      for (const coupon of eligibleCoupons) {
-        const isCouponAvailable = user.availableCoupons.some(
-          (c) => c.couponId.toString() === coupon._id.toString()
-        );
-        if (!isCouponAvailable) {
-          user.availableCoupons.push({
-            couponId: coupon._id,
-            couponCode: coupon.code,
-          });
-        }
-      }
-
-      await user.save();
-    }
 
     // Remove cart items after placing order
     const removeCartItems = async () => {
