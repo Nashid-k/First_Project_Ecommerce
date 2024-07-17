@@ -1,5 +1,6 @@
 const Category = require("../models/categoryModel");
 const Products = require("../models/productModel");
+
 const renderCategory = async (req, res) => {
     try {
         const categoryData = await Category.find();
