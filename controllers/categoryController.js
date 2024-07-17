@@ -1,13 +1,5 @@
 const Category = require("../models/categoryModel");
 const Products = require("../models/productModel");
-
-
-
-
-
-
-
-
 const renderCategory = async (req, res) => {
     try {
         const categoryData = await Category.find();
@@ -106,7 +98,7 @@ const updateCategory = async (req, res) => {
 
     const updatedCategory = await Category.findByIdAndUpdate(
       id, 
-      { name: normalizedName }, // Store the lowercase version
+      { name: normalizedName }, 
       { new: true }
     );
 

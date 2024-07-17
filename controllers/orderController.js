@@ -6,7 +6,7 @@ const Wallet = require('../models/walletModel')
 const renderOrders = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 4; // Set limit to 4 products per page
+    const limit = 4;
     const skip = (page - 1) * limit;
 
     const totalOrders = await Order.countDocuments();
@@ -105,7 +105,6 @@ const renderReturnRequest = async(req,res)=>{
   
   
   const acceptReturn = async (req, res) => {
-    
     const { orderId, productId } = req.body;
   
     try {
@@ -121,11 +120,9 @@ const renderReturnRequest = async(req,res)=>{
         return res.status(404).json({ error: 'Product not found in order' });
       }
   
-  
       if (orderedItem.status !== 'returnrequested') {
         return res.status(400).json({ error: 'Order item is not in return requested status' });
       }
-  
   
       orderedItem.status = 'Returned';
   
@@ -133,8 +130,8 @@ const renderReturnRequest = async(req,res)=>{
   
       const refundAmount = orderedItem.totalProductAmount;
   
-  
-      const userId = req.session.userId;
+
+      const userId = order.userId;
       const userWallet = await Wallet.findOne({ userId });
   
       if (!userWallet) {
@@ -150,7 +147,6 @@ const renderReturnRequest = async(req,res)=>{
   
       await userWallet.save();
   
-     
       const product = await Products.findById(productId);
   
       if (!product) {
@@ -160,7 +156,6 @@ const renderReturnRequest = async(req,res)=>{
       product.quantity += orderedItem.quantity;
       await product.save();
   
-  
       res.status(200).json({ success: 'Return accepted successfully', refundAmount });
   
     } catch (error) {
@@ -168,6 +163,7 @@ const renderReturnRequest = async(req,res)=>{
       res.status(500).json({ error: 'Internal server error' });
     }
   };
+  
 
 
 

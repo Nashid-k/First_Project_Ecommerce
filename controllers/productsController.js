@@ -137,8 +137,8 @@ const renderEditProduct = async (req, res) => {
       const productData = await Products.findById(productId).populate('category');
   
       if (productData) {
-        const categoryData = await Category.find(); // Fetch category data
-        res.render('editproduct', { product:productData, categoryData,productData }); // Pass both productData and categoryData to the template
+        const categoryData = await Category.find();
+        res.render('editproduct', { product:productData, categoryData,productData });
       } else {
         req.flash('error', 'Product not found');
         res.redirect('/admin/products');

@@ -721,21 +721,21 @@ const addReview = async(req,res)=>{
     try{
         const { productId, userId, reviewText, starRating } = req.body;
 
-        // Find the product by ID
+       
         const product = await Products.findById(productId);
     
         if (!product) {
           return res.status(404).send('Product not found');
         }
     
-        // Create a new review
+      
         const newReview = {
           userId,
           reviewText,
           starRating
         };
     
-        // Add the review to the product's reviews array
+      
         product.reviews.push(newReview);
         await product.save();
     
