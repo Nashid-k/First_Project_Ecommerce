@@ -22,20 +22,26 @@ const renderCoupons = async(req,res)=>{
   
   }
 
-  const addCoupons = async (req, res) => {
+const addCoupons = async (req, res) => {
     try {
-   
       const { code, discountType, discountValue, minPurchaseAmount, validity } = req.body;
   
-
+ 
+      const existingCoupon = await Coupon.findOne({ code });
+      if (existingCoupon) {
+        req.flash('error', 'Coupon code already exists');
+        return res.redirect('/admin/coupons');
+      }
+  
       const currentDate = new Date();
       const expiryDate = new Date(currentDate);
       expiryDate.setDate(currentDate.getDate() + parseInt(validity));
-       if(discountValue>minPurchaseAmount){
-        req.flash('error','Discount cannot exceed minimum purchase amount')
-        return  res.redirect('/admin/coupons')
-       }
-
+  
+      if (discountValue > minPurchaseAmount) {
+        req.flash('error', 'Discount cannot exceed minimum purchase amount');
+        return res.redirect('/admin/coupons');
+      }
+  
       const newCoupon = new Coupon({
         code,
         discountType,
@@ -44,17 +50,17 @@ const renderCoupons = async(req,res)=>{
         validity: expiryDate
       });
   
- 
       await newCoupon.save();
   
-  
+      req.flash('success', 'Coupon added successfully');
       res.redirect('/admin/coupons');
     } catch (error) {
-
       console.error('Error adding coupon:', error);
-      res.status(500).send('An error occurred while adding the coupon');
+      req.flash('error', 'An error occurred while adding the coupon');
+      res.redirect('/admin/coupons');
     }
   };
+  
   
 
 
