@@ -63,7 +63,14 @@ const renderEditProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
     try {
         const userId = req.session.userId;
-        const { name, email, mobile } = req.body;
+        let { name, email, mobile } = req.body;
+
+         name = name.trim()
+
+         if(name==="") {
+            req.flash('error','inputs can not be empty')    
+              return   res.redirect('/edit-profile')
+         }
 
         const updatedProfile = await User.findByIdAndUpdate(userId, { name, email, mobile }, { new: true });
 
@@ -258,6 +265,7 @@ const renderMyOrder = async (req, res) => {
         const userId = req.session.userId;
         const user = await User.findById(userId);
         const orderData = await Order.find({ userId })
+          .sort({createdAt:-1})
           .populate('orderedItem.productId')
           .populate('deliveryAddress');
         
@@ -274,11 +282,10 @@ const renderMyOrder = async (req, res) => {
 
   const renderOrderDetails = async (req, res) => {
     try {
-        const userId = req.session.userId; 
-        const { productId } = req.query; 
+        const userId = req.session.userId;
+        const { productId } = req.query;
 
-
-        const userData = await User.findById(userId)
+        const userData = await User.findById(userId);
 
         const orderData = await Order.findOne({
             userId: userId,
@@ -292,10 +299,9 @@ const renderMyOrder = async (req, res) => {
             return res.render("orderdetails", { message: "Order details not found." });
         }
 
-    
         const specificProduct = orderData.orderedItem.find(item => item.productId._id.toString() === productId);
 
-        res.render("orderdetails", { orderData, specificProduct, razorpay_id,userData });
+        res.render("orderdetails", { orderData, specificProduct, userData });
     } catch (error) {
         console.log(error.message);
         res.status(500).render("error", { message: "Internal Server Error" });
@@ -332,8 +338,8 @@ const cancelOrder = async (req, res) => {
             console.log("Product is already cancelled");
             return res.status(400).json({ error: "Product is already cancelled" });
         }
-
-        const refundAmount = orderedItem.totalProductAmount;
+      
+        const refundAmount = orderedItem.discountedPrice?orderedItem.discountedPrice:orderedItem.totalProductAmount;
 
         orderedItem.status = "Cancelled";
         orderedItem.reason = cancelReason; 
@@ -552,81 +558,82 @@ const verifyPayment = async (req, res) => {
 
 
   
-const generateInvoice = async (req, res) => {
+  const generateInvoice = async (req, res) => {
     try {
-        const orderId = req.params.orderId;
-        const order = await Order.findById(orderId).populate('orderedItem.productId').populate('deliveryAddress');
+        const { orderId, productId } = req.params;
+
+        const order = await Order.findById(orderId)
+            .populate('orderedItem.productId')
+            .populate('deliveryAddress');
 
         if (!order) {
             return res.status(404).send('Order not found');
         }
 
-        const doc = new PDFDocument({margin: 50});
-        let filename = `Invoice-${order._id}.pdf`;
+        const specificProduct = order.orderedItem.find(item => item.productId._id.toString() === productId);
+
+        if (!specificProduct) {
+            return res.status(404).send('Product not found in the order');
+        }
+
+        const doc = new PDFDocument({ margin: 50 });
+        let filename = `Invoice-${order._id}-${productId}.pdf`;
         filename = encodeURIComponent(filename);
 
         res.setHeader('Content-disposition', `attachment; filename="${filename}"`);
         res.setHeader('Content-type', 'application/pdf');
 
-  
         const generateHr = (y) => {
             doc.strokeColor("#aaaaaa")
-               .lineWidth(1)
-               .moveTo(50, y)
-               .lineTo(550, y)
-               .stroke();
-        }
+                .lineWidth(1)
+                .moveTo(50, y)
+                .lineTo(550, y)
+                .stroke();
+        };
 
-        const formatCurrency = (cents) => {
-            return "Rs. " + (cents / 100).toFixed(2);
-        }
+        const formatCurrency = (amount) => {
+            return "Rs. " + (amount / 100).toFixed(2);
+        };
 
         const formatDate = (date) => {
             return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-        }
+        };
 
-     
         let pageNumber = 1;
         doc.on('pageAdded', () => {
             pageNumber++;
             doc.text(`Page ${pageNumber}`, 50, 750, { align: 'center' });
         });
 
-        
         doc.fillColor("#444444")
-           .fontSize(28)
-           .text("Nashifa", 50, 50, { align: 'center' })
-           .fontSize(14)
-           .text("Invoice", 50, 80, { align: 'center' })
-           .moveDown();
+            .fontSize(28)
+            .text("Nashifa", 50, 50, { align: 'center' })
+            .fontSize(14)
+            .text("Invoice", 50, 80, { align: 'center' })
+            .moveDown();
 
         doc.fontSize(20)
-           .text("Invoice", 50, 160);
-        
+            .text("Invoice", 50, 160);
+
         generateHr(185);
 
-
-        
         const customerInformationTop = 200;
         doc.fontSize(10)
-           .text("Invoice Number:", 50, customerInformationTop)
-           .font("Helvetica-Bold")
-           .text(order._id, 150, customerInformationTop)
-           .font("Helvetica")
-           .text("Invoice Date:", 50, customerInformationTop + 15)
-           .text(formatDate(order.createdAt), 150, customerInformationTop + 15)
-         
-       
-           .font("Helvetica-Bold")
-           .text("Shipping Address:", 300, customerInformationTop)
-           .font("Helvetica")
-           .text(order.deliveryAddress.address, 300, customerInformationTop + 15)
-           .text(`${order.deliveryAddress.locality}, ${order.deliveryAddress.city}`, 300, customerInformationTop + 30)
-           .text(`${order.deliveryAddress.state} - ${order.deliveryAddress.pincode}`, 300, customerInformationTop + 45);
+            .text("Invoice Number:", 50, customerInformationTop)
+            .font("Helvetica-Bold")
+            .text(order._id, 150, customerInformationTop)
+            .font("Helvetica")
+            .text("Invoice Date:", 50, customerInformationTop + 15)
+            .text(formatDate(order.createdAt), 150, customerInformationTop + 15)
+            .font("Helvetica-Bold")
+            .text("Shipping Address:", 300, customerInformationTop)
+            .font("Helvetica")
+            .text(order.deliveryAddress.address, 300, customerInformationTop + 15)
+            .text(`${order.deliveryAddress.locality}, ${order.deliveryAddress.city}`, 300, customerInformationTop + 30)
+            .text(`${order.deliveryAddress.state} - ${order.deliveryAddress.pincode}`, 300, customerInformationTop + 45);
 
         generateHr(customerInformationTop + 70);
 
-        let i;
         const invoiceTableTop = 330;
 
         doc.font("Helvetica-Bold");
@@ -641,33 +648,30 @@ const generateInvoice = async (req, res) => {
         generateHr(invoiceTableTop + 20);
         doc.font("Helvetica");
 
-        for (i = 0; i < order.orderedItem.length; i++) {
-            const item = order.orderedItem[i];
-            const position = invoiceTableTop + (i + 1) * 30;
-            generateTableRow(
-                doc,
-                position,
-                item.productId.name,
-                item.quantity,
-                formatCurrency(item.priceAtPurchase * 100),
-                formatCurrency(item.quantity * item.priceAtPurchase * 100)
-            );
+        const position = invoiceTableTop + 30;
+        generateTableRow(
+            doc,
+            position,
+            specificProduct.productId.name,
+            specificProduct.quantity,
+            formatCurrency(specificProduct.priceAtPurchase * 100),
+            formatCurrency(specificProduct.totalProductAmount * 100)
+        );
 
-            generateHr(position + 20);
-        }
+        generateHr(position + 20);
 
-        const subtotalPosition = invoiceTableTop + (i + 1) * 30;
+        const subtotalPosition = position + 30;
         generateTableRow(
             doc,
             subtotalPosition,
             "",
             "",
             "Subtotal",
-            formatCurrency(order.orderedItem.reduce((sum, item) => sum + (item.quantity * item.priceAtPurchase * 100), 0))
+            formatCurrency(specificProduct.totalProductAmount * 100)
         );
 
         const discountPosition = subtotalPosition + 20;
-        const discount = order.orderedItem.reduce((sum, item) => sum + (item.quantity * item.priceAtPurchase * 100), 0) - (order.orderAmount * 100);
+        const discount = (specificProduct.totalProductAmount - specificProduct.discountedPrice) * 100;
         generateTableRow(
             doc,
             discountPosition,
@@ -685,18 +689,17 @@ const generateInvoice = async (req, res) => {
             "",
             "",
             "Total",
-            formatCurrency(order.orderAmount * 100)
+            formatCurrency(specificProduct.discountedPrice * 100)
         );
         doc.font("Helvetica");
 
-
         doc.fontSize(10)
-           .text(
-            "Thank you for your business. For any queries, please contact support@yourcompany.com",
-            50,
-            700,
-            { align: "center", width: 500 }
-        );
+            .text(
+                "Thank you for your business. For any queries, please contact support@yourcompany.com",
+                50,
+                700,
+                { align: "center", width: 500 }
+            );
 
         doc.pipe(res);
         doc.end();
@@ -709,11 +712,12 @@ const generateInvoice = async (req, res) => {
 
 function generateTableRow(doc, y, item, quantity, unitCost, total) {
     doc.fontSize(10)
-       .text(item, 50, y)
-       .text(quantity, 280, y, { width: 90, align: "right" })
-       .text(unitCost, 370, y, { width: 90, align: "right" })
-       .text(total, 0, y, { align: "right" });
+        .text(item, 50, y)
+        .text(quantity, 280, y, { width: 90, align: "right" })
+        .text(unitCost, 370, y, { width: 90, align: "right" })
+        .text(total, 0, y, { align: "right" });
 }
+
 
 
 

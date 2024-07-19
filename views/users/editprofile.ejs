@@ -131,6 +131,17 @@
         <!-- Edit Profile Form -->
         <form action="/edit-profile" method="POST">
           <div class="form-group">
+            <% if (messages.success) { %>
+              <div class="alert alert-success flash-message" role="alert" style="color: green;" data-timeout="5">
+                <%= messages.success %>
+              </div>
+            <% } %>
+
+            <% if (messages.error) { %>
+              <div class="alert alert-danger flash-message" role="alert" style="color: red;" data-timeout="5">
+                <%= messages.error %>
+              </div>
+            <% } %>
             <label for="name">Name</label>
             <input type="text" class="form-control" id="name" name="name" value="<%= userData.name %>">
           </div>

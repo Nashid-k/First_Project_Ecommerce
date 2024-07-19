@@ -184,7 +184,7 @@
                     </div>
                     <div class="col-md-9">
                       <h4><%= item.productId.name %></h4>
-                      <p>Price: ₹ <%= item.totalProductAmount%></p>
+                      <p>Price: ₹ <%= item.discountedPrice ? item.discountedPrice :item.totalProductAmount%></p>
                       <p>
                         <span class="badge status-label <%= order.paymentStatus ? item.status.toLowerCase() : 'pending' %>">
                           <%= order.paymentStatus ? item.status : 'Payment Pending' %>

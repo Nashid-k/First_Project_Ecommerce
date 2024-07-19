@@ -279,7 +279,6 @@ const placeOrder = async (req, res) => {
 
     const { selectedAddress, paymentMethod, subtotal, discount, deliveryCharge, total, couponCode } = req.body;
 
-
     if (!selectedAddress) {
       return res.status(400).json({
         success: false,
@@ -305,7 +304,10 @@ const placeOrder = async (req, res) => {
     const orderedItems = [];
     const currentOffers = await ProductOffer.find();
     const currentCategoryOffers = await CategoryOffer.find();
+
     
+    const discountPercentage = discount / subtotal;
+
     for (const cartItem of cartItems) {
       for (const productItem of cartItem.product) {
         const product = await Products.findById(productItem.productId).populate('category');
@@ -321,48 +323,51 @@ const placeOrder = async (req, res) => {
             message: `Insufficient stock for product: ${product.name}`,
           });
         }
-    
+
         let discountedPrice = product.price;
         let appliedDiscount = 0;
-    
-        // Check for product-specific offer
+
+      
         const productOffer = currentOffers.find(
           offer => offer.productId.toString() === product._id.toString()
         );
         if (productOffer) {
           appliedDiscount = Math.max(appliedDiscount, productOffer.discountValue);
         }
-    
-        // Check for category offer
+
+
         const categoryOffer = currentCategoryOffers.find(
           offer => offer.categoryId.toString() === product.category._id.toString()
         );
         if (categoryOffer) {
           appliedDiscount = Math.max(appliedDiscount, categoryOffer.discountValue);
         }
-    
+
         if (appliedDiscount > 0) {
           discountedPrice = Math.ceil(product.price - (product.price * appliedDiscount) / 100);
         }
-    
-        console.log('Product:', product.name);
-        console.log('Original Price:', product.price);
-        console.log('Applied Discount:', appliedDiscount);
-        console.log('Discounted Price:', discountedPrice);
-    
+
+   
+        const couponDiscount = Math.round(discountedPrice * discountPercentage);
+
+
+        const finalPrice = discountedPrice - couponDiscount;
+
         orderedItems.push({
           productId: productItem.productId,
           quantity: productItem.quantity,
-          priceAtPurchase: discountedPrice,
-          totalProductAmount: discountedPrice * productItem.quantity,
+          priceAtPurchase: productItem.price,
+          discountedPrice:finalPrice * productItem.quantity,
+          totalProductAmount: productItem.price* productItem.quantity,
           status: 'pending'
         });
-    
+
         product.quantity -= productItem.quantity;
         await product.save();
       }
     }
-    const orderAmount = total;
+
+    const orderAmount = total + deliveryCharge; 
 
     if (paymentMethod === "wallet") {
       const userWallet = await Wallet.findOne({ userId });
@@ -407,17 +412,17 @@ const placeOrder = async (req, res) => {
 
     await orderData.save();
 
-    // Remove cart items after placing order
+ 
     const removeCartItems = async () => {
       await CartItem.deleteMany({ _id: { $in: cartId } });
     };
 
-    // If payment method is Razorpay, create Razorpay order
+
     if (paymentMethod === "razorpay") {
       const options = {
-        amount: orderAmount * 100, // Amount in paisa
+        amount: orderAmount * 100, 
         currency: "INR",
-        receipt: `order_${orderData._id}`, // Unique order ID
+        receipt: `order_${orderData._id}`,
       };
 
       razorpayInstance.orders.create(options, async (err, order) => {
@@ -429,19 +434,19 @@ const placeOrder = async (req, res) => {
           });
         }
 
-        await removeCartItems(); // Remove cart items after successful order placement
+        await removeCartItems();
 
         res.json({
           success: true,
           orderId: orderData._id,
           razorpayOrderId: order.id,
-          amount: orderAmount * 100, // Send the original order amount to Razorpay
+          amount: orderAmount * 100,
           currency: order.currency,
           key_id: razorpay_id,
         });
       });
     } else {
-      // If payment method is wallet or other method, just remove cart items
+    
       await removeCartItems();
 
       res.json({
@@ -457,6 +462,7 @@ const placeOrder = async (req, res) => {
     });
   }
 };
+
 
 
 

@@ -13,6 +13,7 @@ const renderOrders = async (req, res) => {
     const totalPages = Math.ceil(totalOrders / limit);
 
     const orderData = await Order.find()
+      .sort({createdAt:-1})
       .populate("orderedItem.productId")
       .populate('userId')
       .skip(skip)
@@ -63,9 +64,9 @@ const renderOrders = async (req, res) => {
 
   const orderDetails = async (req, res) => {
     try {
-        const { productId, userId } = req.query;
+        const { productId, userId ,orderId} = req.query;
 
-        const order = await Order.findOne({ 'orderedItem.productId': productId, userId: userId })
+        const order = await Order.findOne({ _id: orderId, userId: userId })
             .populate('orderedItem.productId')
             .populate('userId')
             .populate('deliveryAddress')
@@ -127,8 +128,10 @@ const renderReturnRequest = async(req,res)=>{
       orderedItem.status = 'Returned';
   
       await order.save();
-  
-      const refundAmount = orderedItem.totalProductAmount;
+
+
+      const refundAmount = orderedItem.discountedPrice?orderedItem.discountedPrice:orderedItem.totalProductAmount;
+     
   
 
       const userId = order.userId;

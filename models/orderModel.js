@@ -36,6 +36,10 @@ const orderSchema = new mongoose.Schema({
     reason: {
       type: String
     },
+    discountedPrice: {
+      type: Number,
+      default: 0
+    },
   }],
   orderAmount: {
     type: Number,

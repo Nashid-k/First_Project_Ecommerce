@@ -126,7 +126,7 @@ userRoute.post('/add-money',userAuth.is_login,walletController.addMoneyToWallet)
 
 userRoute.post('/initiatePayment',userAuth.is_login,profileController.initiatePayment)
 userRoute.post('/verifyPayment', userAuth.is_login,profileController.verifyPayment)
-userRoute.get('/invoice/:orderId', userAuth.is_login,profileController.generateInvoice);
+userRoute.get('/invoice/:orderId/:productId', userAuth.is_login,profileController.generateInvoice);
 userRoute.post('/addReview',userAuth.is_login,profileController.addReview)
 
 

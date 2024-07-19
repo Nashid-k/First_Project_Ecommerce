@@ -31,7 +31,10 @@ const renderCoupons = async(req,res)=>{
       const currentDate = new Date();
       const expiryDate = new Date(currentDate);
       expiryDate.setDate(currentDate.getDate() + parseInt(validity));
-  
+       if(discountValue>minPurchaseAmount){
+        req.flash('error','Discount cannot exceed minimum purchase amount')
+        return  res.redirect('/admin/coupons')
+       }
 
       const newCoupon = new Coupon({
         code,

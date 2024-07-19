@@ -140,7 +140,7 @@
            
               <br>
               <div class="checkout_form_input d-flex">
-                <h6 style="font-weight: bold;">Mobile Number : <%= userData.mobile %></h6>
+                <h6 style="font-weight: bold;">Mobile Number : <%= userData.mobile ? userData.mobile : 'Not Provided' %></h6>
                 <br>
                 <b class="pl-3" id="phoneNumber"></b>
               </div>

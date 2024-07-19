@@ -344,7 +344,7 @@
       </div>
       <!-- Display other order details such as total amount, payment method, delivery address -->
       <div class="col-md-6">
-          <p><strong>Total Amount:</strong> ₹<%= specificProduct.quantity * specificProduct.priceAtPurchase %></p>
+          <p><strong>Total Amount:</strong> ₹<%= specificProduct.discountedPrice ?  specificProduct.discountedPrice.toFixed(2) :  specificProduct.totalProductAmount.toFixed(2) %></p>
           <p><strong>Payment Method:</strong> <%= orderData.paymentMethod %></p>
           <p><strong>Delivery Address:</strong> <%= orderData.deliveryAddress.address %>, <%= orderData.deliveryAddress.locality %><br>
               <%= orderData.deliveryAddress.city %>, <%= orderData.deliveryAddress.pincode %>, <%= orderData.deliveryAddress.state %>
@@ -354,34 +354,34 @@
   <!-- Display product details -->
   <h5 style="margin-top: 20px; font-weight: bold;">Product Details</h5>
   <table class="table table-bordered">
-      <thead>
-          <tr>
-              <th>Image</th>
-              <th>Product Name</th>
-              <th>Quantity</th>
-              <th>Price</th>
-              <th>Total</th>
-              <th>Discount</th>
-          </tr>
-      </thead>
-      <tbody>
-          <tr>
-              <td>
-                  <img src="/uploads/products/<%= specificProduct.productId.mainImage %>" alt="Product Image" class="product-image" style="width: 100px;height: 100px;">
-              </td>
-              <td><%= specificProduct.productId.name %></td>
-              <td><%= specificProduct.quantity %></td>
-              <td>₹<%= specificProduct.priceAtPurchase %></td>
-              <td>₹<%= specificProduct.quantity * specificProduct.priceAtPurchase %></td>
-              <td>
-                  ₹<%= ((specificProduct.priceAtPurchase * specificProduct.quantity) - (orderData.orderAmount / orderData.orderedItem.reduce((acc, item) => acc + item.quantity, 0) * specificProduct.quantity)).toFixed(2) %>
-              </td>
-          </tr>
-      </tbody>
+    <thead>
+      <tr>
+          <th>Image</th>
+          <th>Product Name</th>
+          <th>Quantity</th>
+          <th>Price</th>
+          <th>Total</th>
+          <th>Discount</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>
+              <img src="/uploads/products/<%= specificProduct.productId.mainImage %>" alt="Product Image" class="product-image" style="width: 100px;height: 100px;">
+          </td>
+          <td><%= specificProduct.productId.name %></td>
+          <td><%= specificProduct.quantity %></td>
+          <td>₹<%= specificProduct.priceAtPurchase.toFixed(2) %></td>
+          <td>₹<%= specificProduct.totalProductAmount.toFixed(2) %></td>
+          <td>₹<%= (specificProduct.totalProductAmount - specificProduct.discountedPrice).toFixed(2) %></td>
+      </tr>
+  </tbody>
+  
+  
       <tfoot>
           <tr>
               <td colspan="3" style="text-align: right; font-weight: bold;">Total Order Amount:</td>
-              <td colspan="3" style="font-weight: bold;">₹<%= specificProduct.quantity * specificProduct.priceAtPurchase %></td>
+              <td colspan="3" style="font-weight: bold;">₹<%= specificProduct.discountedPrice ?  specificProduct.discountedPrice.toFixed(2) :  specificProduct.totalProductAmount.toFixed(2) %></td>
           </tr>
       </tfoot>
   </table>
@@ -407,7 +407,7 @@
         <!-- Modal trigger button for add review -->
         <button type="button" class="btn btn-primary btn-custom add-review-btn" data-toggle="modal" data-target="#addReviewModal">Add Review</button>
         <!-- Download invoice button -->
-        <a href="/invoice/<%= orderData._id %>" class="btn btn-primary btn-custom download-invoice-btn">Download Invoice</a>
+        <a href="/invoice/<%= orderData._id %>/<%= specificProduct.productId._id %>" class="btn btn-primary btn-custom download-invoice-btn">Download Invoice</a>
       <% } %>
     <% } %>
   </div>
