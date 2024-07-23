@@ -122,8 +122,7 @@ const renderSignUp = async (req, res) => {
 
 const insertUser = async (req, res) => {
   try {
-    const { name, email, mobile, password, cpassword, referred_code } =
-      req.body;
+    const { name, email, mobile, password, cpassword, referred_code } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -131,21 +130,25 @@ const insertUser = async (req, res) => {
       return res.redirect("/signUp");
     }
 
-    if (!/^[6-9]\d{9}$/.test(mobile)) {
-      req.flash(
-        "error",
-        "Please enter a valid 10-digit mobile number starting with 6-9"
-      );
+    if (!/^[a-zA-Z ]+$/.test(name)) { // Corrected the name validation regex
+      req.flash("error", "Please enter a valid name");
       return res.redirect("/signUp");
     }
 
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    if (!emailRegex.test(email)) {
+      req.flash("error", "Please enter a valid email address ending with @gmail.com");
+      return res.redirect("/signUp");
+    }
+
+    if (!/^[6-9]\d{9}$/.test(mobile)) {
+      req.flash("error", "Please enter a valid 10-digit mobile number starting with 6-9");
+      return res.redirect("/signUp");
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
-      req.flash(
-        "error",
-        "Password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character."
-      );
+      req.flash("error", "Password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character.");
       return res.redirect("/signUp");
     }
 
@@ -206,6 +209,7 @@ const insertUser = async (req, res) => {
     res.redirect("/signUp");
   }
 };
+
 
 const verifyOtp = async (req, res) => {
   try {
