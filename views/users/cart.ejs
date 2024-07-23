@@ -96,6 +96,7 @@
                     </form>
                 </div> 
             </div> -->
+            <% if (cartItems && cartItems.length > 0) { %>
             <div class="col-lg-4 offset-lg-8">
                 <div class="cart__total__procced">
                     <h6>Cart total</h6>
@@ -106,6 +107,7 @@
                     <button class="site-btn" onclick="window.location = '/checkout'">  Proceed to checkout   </button>
                 </div>
             </div>
+            <% } %>
         </div>
     </div>
 </section>

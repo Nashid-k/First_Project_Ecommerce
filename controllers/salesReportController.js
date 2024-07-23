@@ -167,7 +167,7 @@ const renderSalesReport = async (req, res) => {
   
       doc.fillColor("#444444")
          .fontSize(28)
-         .text("Your Store Name", 50, 50, { align: 'center' })
+         .text("Nashifa", 50, 50, { align: 'center' })
          .fontSize(20)
          .text("Sales Report", 50, 80, { align: 'center' })
          .fontSize(10)

@@ -163,7 +163,7 @@ const renderHome = async (req, res) => {
       if (userData && userData.block) {
         req.session.destroy((err) => {
           if (err) {
-            console.log("Error destroying session:", err);
+          
             return res.status(500).send({ message: "Internal server error" });
           }
           res.redirect("/login");
@@ -176,7 +176,7 @@ const renderHome = async (req, res) => {
       res.render("home", renderData);
     }
   } catch (error) {
-    console.log(error.message);
+
     res.status(500).send({ message: "Internal server error" });
   }
 };
@@ -299,7 +299,7 @@ const renderProductDetails = async (req, res) => {
     const product = await Products.findById(productId);
 
     if (!product) {
-      console.log("Product not found");
+   
       return res.render("productDetails", { product: null });
     }
 
@@ -337,7 +337,7 @@ const renderProductDetails = async (req, res) => {
 
     return res.render("productDetails", renderData);
   } catch (error) {
-    console.log(error.message);
+    
     res.status(500).send("Internal Server Error");
   }
 };
@@ -360,7 +360,7 @@ const renderWomen = async (req, res) => {
 
     res.render("women", { productData, categories });
   } catch (error) {
-    console.log(error.message);
+
     res.status(500).send("Internal Server Error");
   }
 };
@@ -383,7 +383,7 @@ const renderMens = async (req, res) => {
 
     res.render("women", { productData, categories });
   } catch (error) {
-    console.log(error.message);
+
     res.status(500).send("Internal Server Error");
   }
 };
@@ -523,7 +523,7 @@ const sortProducts = async (req, res) => {
       currentPage: parseInt(page),
     });
   } catch (error) {
-    console.error(error);
+
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -550,7 +550,8 @@ const addToWishlist = async (req, res) => {
     await wishlistItem.save();
     res.redirect("/wishlist");
   } catch (error) {
-    console.log(error.message);
+
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -561,7 +562,7 @@ const renderWishlist = async (req, res) => {
       const wishlistItem = await WishlistItem.find({
         userId: req.session.userId,
       }).populate("product.productId");
-      console.log(wishlistItem);
+      
 
       res.render("wishlist", {
         wishlistItems: wishlistItem,
@@ -571,7 +572,8 @@ const renderWishlist = async (req, res) => {
       res.redirect("/login");
     }
   } catch (error) {
-    console.log(error.message);
+   
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -588,7 +590,7 @@ const RemoveFromWishlist = async (req, res) => {
       res.status(401).json({ message: "Unauthorized" });
     }
   } catch (error) {
-    console.error(error.message);
+
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
