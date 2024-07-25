@@ -367,7 +367,7 @@ const placeOrder = async (req, res) => {
       }
     }
 
-    const orderAmount = total + deliveryCharge; 
+    const orderAmount = total ; 
 
     if (paymentMethod === "wallet") {
       const userWallet = await Wallet.findOne({ userId });
@@ -541,14 +541,24 @@ const insertCheckoutAddress = async (req, res) => {
       return res.redirect("/login");
     }
 
-    if (!pincode || !locality || !address || !city || !state || !addresstype) {
+
+    const trimmedPincode = pincode.trim();
+    const trimmedLocality = locality.trim();
+    const trimmedAddress = address.trim();
+    const trimmedCity = city.trim();
+    const trimmedState = state.trim();
+    const trimmedAddresstype = addresstype.trim();
+
+    if (!trimmedPincode || !trimmedLocality || !trimmedAddress || !trimmedCity || !trimmedState || !trimmedAddresstype) {
       req.flash("error", "All fields are required");
       return res.redirect("/addNewAddress");
     }
+   
 
-    const pincodeRegex = /^\d+$/;
-    if (!pincodeRegex.test(pincode)) {
-      req.flash("error", "Pincode must contain only numbers");
+    let numRegex = /^\d+$/
+    const pincodeRegex = /^\d{6}$/;  
+    if (!pincodeRegex.test(trimmedPincode)) {
+      req.flash("error", "Pincode must contain exactly 6 digits");
       return res.redirect("/addNewAddress");
     }
 
@@ -559,15 +569,19 @@ const insertCheckoutAddress = async (req, res) => {
       req.flash("error", "All fields cannot be empty or contain only spaces");
       return res.redirect("/addNewAddress");
     }
+    if(numRegex.test(trimmedLocality||trimmedAddress||trimmedCity||trimmedCity)){
+      req.flash("error", "Enter a valid address");
+      return res.redirect("/addNewAddress");
+    }
 
     const newAddress = new Address({
       userId,
-      pincode,
-      locality,
-      address,
-      city,
-      state,
-      addresstype,
+      pincode: trimmedPincode,
+      locality: trimmedLocality,
+      address: trimmedAddress,
+      city: trimmedCity,
+      state: trimmedState,
+      addresstype: trimmedAddresstype,
     });
 
     const userAddress = await newAddress.save();
@@ -576,10 +590,12 @@ const insertCheckoutAddress = async (req, res) => {
     req.flash("success", "Address added successfully");
     res.redirect("/checkout");
   } catch (error) {
+    console.error(error); 
     req.flash("error", "Internal server error");
     res.redirect("/addNewAddress");
   }
 };
+
 
 const removeAddress = async (req, res) => {
   try {

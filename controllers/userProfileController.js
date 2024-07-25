@@ -62,26 +62,51 @@ const renderEditProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        const userId = req.session.userId;
-        let { name, email, mobile } = req.body;
+      const userId = req.session.userId;
+      let { name = '', mobile = '' } = req.body;
 
-         name = name.trim()
+      name = name.trim();
+  
+      mobile = mobile.trim();
+  
+      
+      if (name === "" || mobile === "") {
+        req.flash('error', 'All fields are required');
+        return res.redirect('/edit-profile');
+      }
+  
 
-         if(name==="") {
-            req.flash('error','inputs can not be empty')    
-              return   res.redirect('/edit-profile')
-         }
+      const nameRegex = /^[a-zA-Z ]+$/;
+      if (!nameRegex.test(name)) {
+        req.flash('error', 'Please enter a valid name ');
+        return res.redirect('/edit-profile');
+      }
+  
+    
+      const mobileRegex = /^[6-9]\d{9}$/;
+      if (!mobileRegex.test(mobile)) {
+        req.flash('error', 'Please enter a valid number');
+        return res.redirect('/edit-profile');
+      }
+  
 
-        const updatedProfile = await User.findByIdAndUpdate(userId, { name, email, mobile }, { new: true });
-
-        if (updatedProfile) {
-            res.redirect("/profile");
-        }
+      const updatedProfile = await User.findByIdAndUpdate(userId, { name,mobile }, { new: true });
+  
+      if (updatedProfile) {
+        res.redirect("/profile");
+      } else {
+        req.flash('error', 'Failed to update profile');
+        res.redirect('/edit-profile');
+      }
     } catch (error) {
-        console.log(error.message);
-        res.status(500).json({ error: "Internal server error" });
+      console.log(error.message);
+      res.status(500).json({ error: "Internal server error" });
     }
-};
+  };
+  
+  
+  
+  
 
 const renderaddress = async (req, res) => {
     try {
@@ -118,52 +143,68 @@ const renderAddNewAddress = async (req, res) => {
 
 const insertNewAddress = async (req, res) => {
     try {
-        const userId = req.session.userId;
-        const { pincode, locality, address, city, state, addresstype } = req.body;
+      const userId = req.session.userId;
+      const { pincode, locality, address, city, state, addresstype } = req.body;
+      const trimmedPincode = pincode.trim();
+      const trimmedLocality = locality.trim();
+      const trimmedAddress = address.trim();
+      const trimmedCity = city.trim();
+      const trimmedState = state.trim();
 
-        if (!userId) {
-            req.flash("error", "You must be logged in to perform this action");
-            return res.redirect("/login");
-        }
-
-        if (!pincode || !locality || !address || !city || !state || !addresstype) {
-            req.flash("error", "All fields are required");
-            return res.redirect("/add-address");
-        }
-
-        const pincodeRegex = /^\d+$/;
-        if (!pincodeRegex.test(pincode)) {
-            req.flash("error", "Pincode must contain only numbers");
-            return res.redirect("/add-address");
-        }
-
-        const allFieldsAreSpaces = Object.values(req.body).every((value) => value.trim() === "");
-        if (allFieldsAreSpaces) {
-            req.flash("error", "All fields cannot be empty or contain only spaces");
-            return res.redirect("/add-address");
-        }
-
-        const newAddress = new Address({
-            userId,
-            pincode,
-            locality,
-            address,
-            city,
-            state,
-            addresstype,
-        });
-
-        const userAddress = await newAddress.save();
-
-        req.session.useraddress = userAddress;
-        req.flash("success", "Address added successfully");
-        res.redirect("/address");
+  
+      if (!userId) {
+        req.flash("error", "You must be logged in to perform this action");
+        return res.redirect("/login");
+      }
+      if (!trimmedPincode || !trimmedLocality || !trimmedAddress || !trimmedCity || !trimmedState) {
+        req.flash("error", "All fields are required");
+        return res.redirect("/add-address");
+      }
+     
+  
+      let numRegex = /^\d+$/
+      const pincodeRegex = /^\d{6}$/;  
+      if (!pincodeRegex.test(trimmedPincode)) {
+        req.flash("error", "Enter a valid pincode");
+        return res.redirect("/add-address");
+      }
+  
+      const allFieldsAreSpaces = Object.values(req.body).every(
+        (value) => value.trim() === ""
+      );
+      if (allFieldsAreSpaces) {
+        req.flash("error", "All fields cannot be empty or contain only spaces");
+        return res.redirect("/add-address");
+      }
+      if(numRegex.test(trimmedLocality||trimmedAddress||trimmedCity||trimmedCity)){
+        req.flash("error", "Enter a valid address");
+        return res.redirect("/add-address");
+      }
+    
+      const newAddress = new Address({
+        userId,
+        pincode,
+        locality,
+        address,
+        city,
+        state,
+        addresstype,
+      });
+  
+      const userAddress = await newAddress.save();
+  
+      req.session.useraddress = userAddress;
+      req.flash("success", "Address added successfully");
+      res.redirect("/address");
     } catch (error) {
-        console.log(error.message);
-        req.flash("error", "Internal server error");
-        res.redirect("/address");
+      console.log(error.message);
+      req.flash("error", "Internal server error");
+      res.redirect("/address");
     }
-};
+  };
+  
+  
+  
 
 const renderEditAddress = async (req, res) => {
     try {
@@ -283,13 +324,14 @@ const renderMyOrder = async (req, res) => {
   const renderOrderDetails = async (req, res) => {
     try {
         const userId = req.session.userId;
-        const { productId } = req.query;
+        const { productId, orderItemId } = req.query;
 
         const userData = await User.findById(userId);
 
         const orderData = await Order.findOne({
             userId: userId,
-            'orderedItem.productId': productId
+            'orderedItem.productId': productId,
+            'orderedItem._id': orderItemId
         })
         .populate('orderedItem.productId')
         .populate('userId')
@@ -299,7 +341,7 @@ const renderMyOrder = async (req, res) => {
             return res.render("orderdetails", { message: "Order details not found." });
         }
 
-        const specificProduct = orderData.orderedItem.find(item => item.productId._id.toString() === productId);
+        const specificProduct = orderData.orderedItem.find(item => item._id.toString() === orderItemId);
 
         res.render("orderdetails", { orderData, specificProduct, userData });
     } catch (error) {
@@ -314,20 +356,23 @@ const renderMyOrder = async (req, res) => {
 const cancelOrder = async (req, res) => {
     try {
         const userId = req.session.userId;
-        const { productId, cancelReason } = req.body;
+        const { orderItemId, cancelReason } = req.body;
 
         if (!userId) {
+            console.log("Unauthorized: No user ID found in session");
             return res.status(401).json({ error: "Unauthorized" });
         }
 
-        const order = await Order.findOne({ 'orderedItem.productId': productId, userId }).populate("orderedItem.productId");
+  
+
+        const order = await Order.findOne({ 'orderedItem._id': orderItemId, userId }).populate("orderedItem.productId");
 
         if (!order) {
             console.log("Order not found or does not belong to the user");
             return res.status(404).json({ error: "Order not found or does not belong to the user" });
         }
 
-        const orderedItem = order.orderedItem.find(item => item.productId._id.toString() === productId);
+        const orderedItem = order.orderedItem.find(item => item._id.toString() === orderItemId);
 
         if (!orderedItem) {
             console.log("Ordered item not found");
@@ -338,37 +383,42 @@ const cancelOrder = async (req, res) => {
             console.log("Product is already cancelled");
             return res.status(400).json({ error: "Product is already cancelled" });
         }
-      
-        const refundAmount = orderedItem.discountedPrice?orderedItem.discountedPrice:orderedItem.totalProductAmount;
+
+        
+        const baseRefundAmount = orderedItem.discountedPrice ? orderedItem.discountedPrice : orderedItem.totalProductAmount;
+        const refundAmount = order.deliveryCharge ? baseRefundAmount + order.deliveryCharge : baseRefundAmount;
+
 
         orderedItem.status = "Cancelled";
-        orderedItem.reason = cancelReason; 
+        orderedItem.reason = cancelReason;
         await order.save();
 
-        const userWallet = await Wallet.findOne({ userId });
-        if (!userWallet) {
-            console.log("Wallet not found for user");
-            return res.status(404).json({ error: "Wallet not found" });
+        if (order.paymentMethod !== "cashOnDelivery") {
+            const userWallet = await Wallet.findOne({ userId });
+            if (!userWallet) {
+                console.log("Wallet not found for user");
+                return res.status(404).json({ error: "Wallet not found" });
+            }
+
+            userWallet.balance += refundAmount;
+            userWallet.transactions.push({
+                amount: refundAmount,
+                transactionMethod: "Refund",
+                date: new Date(),
+            });
+            await userWallet.save();
         }
 
-        userWallet.balance += refundAmount;
-        userWallet.transactions.push({
-            amount: refundAmount,
-            transactionMethod: "Refund",
-            date: new Date(),
-        });
-        await userWallet.save();
-
-        const product = await Products.findById(productId);
+        const product = await Products.findById(orderedItem.productId._id);
         if (!product) {
             console.log("Product not found");
             return res.status(404).json({ error: "Product not found" });
         }
 
-        product.quantity += orderedItem.quantity; 
+        product.quantity += orderedItem.quantity;
         await product.save();
 
-        res.status(200).json({ success: "Order cancelled successfully", refundAmount });
+        res.status(200).json({ success: "Order cancelled successfully", refundAmount: order.paymentMethod !== "cashOnDelivery" ? refundAmount : 0 });
 
     } catch (error) {
         console.log(error.message);
@@ -378,22 +428,24 @@ const cancelOrder = async (req, res) => {
 
 
 
+
 const returnOrderRequest = async (req, res) => {
     try {
         const userId = req.session.userId;
-        const { productId, returnReason } = req.body;
+        const { orderItemId, productId, returnReason } = req.body;
 
         if (!userId) {
             return res.status(401).json({ error: "Unauthorized" });
         }
 
-        const order = await Order.findOne({ 'orderedItem.productId': productId, userId }).populate("orderedItem.productId");
+        const order = await Order.findOne({ 'orderedItem._id': orderItemId, userId }).populate("orderedItem.productId");
 
         if (!order) {
             return res.status(404).json({ error: "Order not found or does not belong to the user" });
         }
 
-        const orderedItem = order.orderedItem.find(item => item.productId._id.toString() === productId);
+
+        const orderedItem = order.orderedItem.find(item => item._id.toString() === orderItemId && item.productId._id.toString() === productId);
 
         if (!orderedItem) {
             return res.status(404).json({ error: "Ordered item not found" });
@@ -407,6 +459,7 @@ const returnOrderRequest = async (req, res) => {
         orderedItem.status = "returnrequested";
         orderedItem.reason = returnReason;
 
+  
         await order.save();
 
         res.status(200).json({ success: "Return request submitted successfully" });
@@ -416,6 +469,7 @@ const returnOrderRequest = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
+
 
 
 

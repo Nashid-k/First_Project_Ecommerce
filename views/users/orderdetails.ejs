@@ -137,6 +137,7 @@
       <div class="modal-body">
         <form id="returnOrderForm" action="/returnOrder" method="POST">
           <input type="hidden" name="productId" value="<%= specificProduct.productId._id %>">
+          <input type="hidden" name="orderItemId" value="<%= specificProduct._id %>">
           <div class="form-group">
             <label for="returnReason">Select a reason for returning the order:</label>
             <select class="form-control" id="returnReason" name="returnReason">
@@ -210,6 +211,7 @@
       <div class="modal-body">
         <form id="cancelOrderForm" action="/cancelOrder" method="POST">
           <input type="hidden" name="productId" value="<%= specificProduct.productId._id %>">
+          <input type="hidden" name="orderItemId" value="<%= specificProduct._id %>">
           <div class="form-group">
             <label for="cancelReason">Select a reason for canceling the order:</label>
             <select class="form-control" id="cancelReason" name="cancelReason">
@@ -344,7 +346,13 @@
       </div>
       <!-- Display other order details such as total amount, payment method, delivery address -->
       <div class="col-md-6">
-          <p><strong>Total Amount:</strong> ₹<%= specificProduct.discountedPrice ?  specificProduct.discountedPrice.toFixed(2) :  specificProduct.totalProductAmount.toFixed(2) %></p>
+          <p><strong>Total Amount:</strong> ₹<% if (orderData.deliveryCharge) { %>
+            <%= orderData.orderAmount %>
+          <% } else if (specificProduct.discountedPrice) { %>
+            <%= specificProduct.discountedPrice %>
+          <% } else { %>
+            <%= specificProduct.totalProductAmount %>
+          <% } %></p>
           <p><strong>Payment Method:</strong> <%= orderData.paymentMethod %></p>
           <p><strong>Delivery Address:</strong> <%= orderData.deliveryAddress.address %>, <%= orderData.deliveryAddress.locality %><br>
               <%= orderData.deliveryAddress.city %>, <%= orderData.deliveryAddress.pincode %>, <%= orderData.deliveryAddress.state %>
@@ -360,8 +368,9 @@
           <th>Product Name</th>
           <th>Quantity</th>
           <th>Price</th>
-          <th>Total</th>
           <th>Discount</th>
+          <th>deliveryCharge</th>
+          <th>Total</th>
       </tr>
   </thead>
   <tbody>
@@ -372,8 +381,15 @@
           <td><%= specificProduct.productId.name %></td>
           <td><%= specificProduct.quantity %></td>
           <td>₹<%= specificProduct.priceAtPurchase.toFixed(2) %></td>
-          <td>₹<%= specificProduct.totalProductAmount.toFixed(2) %></td>
           <td>₹<%= (specificProduct.totalProductAmount - specificProduct.discountedPrice).toFixed(2) %></td>
+          <td>₹<%= orderData.deliveryCharge %></td>
+          <td><% if (orderData.deliveryCharge) { %>
+            <%= orderData.orderAmount %>
+          <% } else if (specificProduct.discountedPrice) { %>
+            <%= specificProduct.discountedPrice %>
+          <% } else { %>
+            <%= specificProduct.totalProductAmount %>
+          <% } %></td>
       </tr>
   </tbody>
   
@@ -381,7 +397,13 @@
       <tfoot>
           <tr>
               <td colspan="3" style="text-align: right; font-weight: bold;">Total Order Amount:</td>
-              <td colspan="3" style="font-weight: bold;">₹<%= specificProduct.discountedPrice ?  specificProduct.discountedPrice.toFixed(2) :  specificProduct.totalProductAmount.toFixed(2) %></td>
+              <td colspan="3" style="font-weight: bold;">₹<% if (orderData.deliveryCharge) { %>
+                <%= orderData.orderAmount %>
+              <% } else if (specificProduct.discountedPrice) { %>
+                <%= specificProduct.discountedPrice %>
+              <% } else { %>
+                <%= specificProduct.totalProductAmount %>
+              <% } %></td>
           </tr>
       </tfoot>
   </table>

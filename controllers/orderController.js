@@ -130,8 +130,8 @@ const renderReturnRequest = async(req,res)=>{
       await order.save();
 
 
-      const refundAmount = orderedItem.discountedPrice?orderedItem.discountedPrice:orderedItem.totalProductAmount;
-     
+      const baseRefundAmount = orderedItem.discountedPrice ? orderedItem.discountedPrice : orderedItem.totalProductAmount;
+      const refundAmount = order.deliveryCharge ? baseRefundAmount + order.deliveryCharge : baseRefundAmount;
   
 
       const userId = order.userId;

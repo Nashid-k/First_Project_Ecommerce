@@ -130,7 +130,7 @@ const insertUser = async (req, res) => {
       return res.redirect("/signUp");
     }
 
-    if (!/^[a-zA-Z ]+$/.test(name)) { // Corrected the name validation regex
+    if (!/^[a-zA-Z ]+$/.test(name)) {
       req.flash("error", "Please enter a valid name");
       return res.redirect("/signUp");
     }

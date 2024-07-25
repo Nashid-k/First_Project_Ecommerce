@@ -14,6 +14,7 @@ const renderLogin = async (req, res) => {
 
 const loadLogout = async (req, res) => {
   try {
+    req.session.destroy()
     res.redirect("/admin/login");
   } catch (error) {
     return res.status(500).send({ error: "Internal server error" });

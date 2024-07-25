@@ -395,75 +395,38 @@ const sortProducts = async (req, res) => {
     const limit = 9;
     let filter = { is_listed: true };
 
+  
     if (query) {
       filter.name = { $regex: query, $options: "i" };
     }
 
+
     if (category !== "all") {
       const categoryData = await Category.findById(category);
       if (!categoryData || !categoryData.is_listed) {
-        return res
-          .status(404)
-          .json({ error: "Category not found or not listed" });
+        return res.status(404).json({ error: "Category not found or not listed" });
       }
       filter.category = category;
     } else {
-      const listedCategories = await Category.find({ is_listed: true }).select(
-        "_id"
-      );
+      const listedCategories = await Category.find({ is_listed: true }).select("_id");
       filter.category = { $in: listedCategories.map((cat) => cat._id) };
     }
 
-    let sortOption = {};
 
-    switch (criteria) {
-      case "nameAZ":
-        sortOption = { name: 1 };
-        break;
-      case "nameZA":
-        sortOption = { name: -1 };
-        break;
-      case "newArrivals":
-        sortOption = { createdAt: -1 };
-        break;
-      case "priceLowToHigh":
-        sortOption = { price: 1 };
-        break;
-      case "priceHighToLow":
-        sortOption = { price: -1 };
-        break;
-      case "sizeS":
-        filter.size = "small";
-        break;
-      case "sizeM":
-        filter.size = "medium";
-        break;
-      case "sizeL":
-        filter.size = "large";
-        break;
-    }
+    const productData = await Products.find(filter).collation({ locale: "en" });
 
-    const totalProducts = await Products.countDocuments(filter);
-    const totalPages = Math.ceil(totalProducts / limit);
-
-    const productData = await Products.find(filter)
-      .collation({ locale: "en" })
-      .sort(sortOption)
-      .skip((page - 1) * limit)
-      .limit(limit);
-
+    
     const newLabelCountdownDays = 3;
     const currentOffers = await ProductOffer.find();
     const currentCategoryOffers = await CategoryOffer.find();
+
 
     const modifiedProductData = await Promise.all(
       productData.map(async (product) => {
         const isOutOfStock = product.quantity === 0;
         const createdAt = new Date(product.createdAt);
         const today = new Date();
-        const daysDifference = Math.floor(
-          (today - createdAt) / (1000 * 60 * 60 * 24)
-        );
+        const daysDifference = Math.floor((today - createdAt) / (1000 * 60 * 60 * 24));
         const isNew = daysDifference <= newLabelCountdownDays && !isOutOfStock;
 
         let discountedPrice = product.price;
@@ -473,20 +436,14 @@ const sortProducts = async (req, res) => {
           (offer) => offer.productId.toString() === product._id.toString()
         );
         if (productOffer) {
-          appliedDiscount = Math.max(
-            appliedDiscount,
-            productOffer.discountValue
-          );
+          appliedDiscount = Math.max(appliedDiscount, productOffer.discountValue);
         }
 
         const categoryOffer = currentCategoryOffers.find(
           (offer) => offer.categoryId.toString() === product.category.toString()
         );
         if (categoryOffer) {
-          appliedDiscount = Math.max(
-            appliedDiscount,
-            categoryOffer.discountValue
-          );
+          appliedDiscount = Math.max(appliedDiscount, categoryOffer.discountValue);
         }
 
         if (appliedDiscount > 0) {
@@ -494,16 +451,13 @@ const sortProducts = async (req, res) => {
             product.price - (product.price * appliedDiscount) / 100
           );
         }
+
         const totalReviews = product.reviews.length;
-        const averageRating =
-          totalReviews > 0
-            ? (
-                product.reviews.reduce(
-                  (acc, review) => acc + review.starRating,
-                  0
-                ) / totalReviews
-              ).toFixed(1)
-            : 0;
+        const averageRating = totalReviews > 0
+          ? (
+              product.reviews.reduce((acc, review) => acc + review.starRating, 0) / totalReviews
+            ).toFixed(1)
+          : 0;
 
         return {
           ...product.toObject(),
@@ -517,16 +471,63 @@ const sortProducts = async (req, res) => {
       })
     );
 
+   
+    let sortOption = {};
+    switch (criteria) {
+      case "nameAZ":
+        sortOption = { name: 1 };
+        break;
+      case "nameZA":
+        sortOption = { name: -1 };
+        break;
+      case "newArrivals":
+        sortOption = { createdAt: -1 };
+        break;
+      case "priceLowToHigh":
+        sortOption = { discountedPrice: 1 };
+        break;
+      case "priceHighToLow":
+        sortOption = { discountedPrice: -1 };
+        break;
+      case "sizeS":
+        filter.size = "small";
+        break;
+      case "sizeM":
+        filter.size = "medium";
+        break;
+      case "sizeL":
+        filter.size = "large";
+        break;
+    }
+
+   
+    const sortedProductData = modifiedProductData.sort((a, b) => {
+      if (sortOption.discountedPrice === 1) {
+        return a.discountedPrice - b.discountedPrice;
+      } else if (sortOption.discountedPrice === -1) {
+        return b.discountedPrice - a.discountedPrice;
+      } else {
+        return 0;
+      }
+    });
+
+    const totalProducts = sortedProductData.length;
+    const totalPages = Math.ceil(totalProducts / limit);
+
+
+    const paginatedProducts = sortedProductData.slice((page - 1) * limit, page * limit);
+
     res.json({
-      productData: modifiedProductData,
+      productData: paginatedProducts,
       totalPages: totalPages,
       currentPage: parseInt(page),
     });
   } catch (error) {
-
+    console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
 
 const addToWishlist = async (req, res) => {
   try {

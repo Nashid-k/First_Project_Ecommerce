@@ -184,7 +184,14 @@
                     </div>
                     <div class="col-md-9">
                       <h4><%= item.productId.name %></h4>
-                      <p>Price: ₹ <%= item.discountedPrice ? item.discountedPrice :item.totalProductAmount%></p>
+                      <p>Price: ₹
+                        <% let finalPrice = item.discountedPrice || item.totalProductAmount; %>
+                        <% if (order.deliveryCharge) { %>
+                          <%= finalPrice + order.deliveryCharge %>
+                        <% } else { %>
+                          <%= finalPrice %>
+                        <% } %>
+                      </p>
                       <p>
                         <span class="badge status-label <%= order.paymentStatus ? item.status.toLowerCase() : 'pending' %>">
                           <%= order.paymentStatus ? item.status : 'Payment Pending' %>
@@ -202,7 +209,7 @@
                           <strong>Delivery Address:</strong> Not provided
                         </p>
                       <% } %>
-                      <a href="/orderDetails/?productId=<%= item.productId._id %>" class="btn btn-primary">View Details</a>
+                      <a href="/orderDetails/?productId=<%= item.productId._id %>&orderItemId=<%= item._id %>" class="btn btn-primary">View Details</a>
                     </div>
                   </div>
                 </div>
@@ -229,7 +236,7 @@
 <!-- Custom JavaScript to handle the modal trigger -->
 <script>
   $(document).ready(function () {
-    $('#changePasswordBtn, #changePasswordBtnSidebar').click(function () {
+    $('#changePasswordBtn').click(function () {
       $('#changePasswordModal').modal('show');
     });
   });
