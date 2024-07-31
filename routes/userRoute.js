@@ -107,6 +107,7 @@ userRoute.post('/updateCartItem',userAuth.is_login,cartController.updateCartItem
 userRoute.post('/removeCartItem',userAuth.is_login,cartController.removeCartItem)
 userRoute.post('/placeOrder',userAuth.is_login,cartController.placeOrder)
 userRoute.post('/applyCoupon',userAuth.is_login,cartController.applyCoupon)
+userRoute.post('/removeCoupon',userAuth.is_login,cartController.removeCoupon)
 userRoute.post('/verifyRazorpayPayment',userAuth.is_login, cartController.verifyRazorpayPayment);
 userRoute.get('/addNewAddress',userAuth.is_login,cartController.addNewAddress)
 userRoute.post('/addCheckoutAddress',userAuth.is_login,cartController.insertCheckoutAddress)

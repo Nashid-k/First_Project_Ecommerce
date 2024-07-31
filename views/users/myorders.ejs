@@ -185,7 +185,7 @@
                     <div class="col-md-9">
                       <h4><%= item.productId.name %></h4>
                       <p>Price: ₹
-                        <% let finalPrice = item.discountedPrice || item.totalProductAmount; %>
+                        <% let finalPrice = item.discountedPrice *item.quantity || item.totalProductAmount*item.quantity; %>
                         <% if (order.deliveryCharge) { %>
                           <%= finalPrice + order.deliveryCharge %>
                         <% } else { %>

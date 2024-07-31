@@ -36,7 +36,7 @@
     text-transform: uppercase;
     cursor: pointer;
     transition: background-color 0.3s ease; /* Add transition for smooth effect */
-}
+  }
 </style>
 
 <!-- Include SweetAlert CSS and JS -->
@@ -66,13 +66,14 @@
       <div class="col-lg-12">
         <form id="couponForm">
           <div class="checkout__coupon">
-              <h5 style="font-weight: 600;">COUPON CODE</h5>
-              <br>
-              <input type="text" id="couponCode" name="couponCode" placeholder="Enter your coupon code" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-              <button type="button" class="site-btn1" onclick="applyCoupon()">Apply</button>
+            <h5 style="font-weight: 600;">COUPON CODE</h5>
+            <br>
+            <input type="text" id="couponCode" name="couponCode" placeholder="Enter your coupon code" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            <button type="button" class="site-btn1" onclick="applyCoupon()">Apply</button>
+            <button type="button" class="site-btn1" style="background-color: rgb(100, 100, 100);" onclick="removeCoupon()">Remove</button>
           </div>
-      </form>
-      
+        </form>
+
         <br><br>
         <form action="/placeOrder" class="checkout__form" method="post">
           <div class="row">
@@ -113,9 +114,7 @@
                   <p>No addresses available. Please add an address.</p>
                 <% } %>
                 <button type="button" class="btn btn-primary" id="editAddressBtn" onclick="navigateToAddAddress(event)">Add Address</button>
-
-<br><br>
-
+                <br><br>
               </div>
             </div>
             <div class="col-lg-4 order-section">
@@ -305,6 +304,36 @@ function applyCoupon() {
     });
 }
 
+function removeCoupon() {
+    const couponCode = document.getElementById('couponCode').value;
+
+    fetch('/removeCoupon', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ couponCode: couponCode })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const originalTotal = parseFloat('<%= subtotal %>') + parseFloat('<%= deliveryCharge %>'); // Use server-side values for original subtotal and delivery charge
+            const originalDiscount = 0; // Assuming no discount initially
+            
+            document.getElementById('totalAmount').innerText = `₹ ${originalTotal.toFixed(2)}`;
+            document.getElementById('discount').innerText = `₹ ${originalDiscount.toFixed(2)}`;
+            document.getElementById('couponCode').value = '';
+            
+            Swal.fire('Success', 'Coupon removed successfully', 'success');
+        } else {
+            Swal.fire('Error', data.message || 'Error removing coupon', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire('Error', 'An error occurred. Please try again.', 'error');
+    });
+}
 function handlePlaceOrder(e) {
     e.preventDefault();
     const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value;

@@ -30,7 +30,7 @@
   background-color: #28a745; /* Green background */
   color: #fff; /* White text */
   border-color: #28a745; /* Green border */
-  margin-top: -630px;
+ 
 }
 
 
@@ -349,9 +349,9 @@
           <p><strong>Total Amount:</strong> ₹<% if (orderData.deliveryCharge) { %>
             <%= orderData.orderAmount %>
           <% } else if (specificProduct.discountedPrice) { %>
-            <%= specificProduct.discountedPrice %>
+            <%= specificProduct.discountedPrice *specificProduct.quantity %>
           <% } else { %>
-            <%= specificProduct.totalProductAmount %>
+            <%= specificProduct.totalProductAmount *specificProduct.quantity %>
           <% } %></p>
           <p><strong>Payment Method:</strong> <%= orderData.paymentMethod %></p>
           <p><strong>Delivery Address:</strong> <%= orderData.deliveryAddress.address %>, <%= orderData.deliveryAddress.locality %><br>
@@ -368,10 +368,10 @@
           <th>Product Name</th>
           <th>Quantity</th>
           <th>Price</th>
-          <th>Discount</th>
-          <th>deliveryCharge</th>
           <th>Total</th>
-      </tr>
+          <th>deliveryCharge</th>
+          <th>Discount</th>
+        </tr>
   </thead>
   <tbody>
       <tr>
@@ -381,15 +381,16 @@
           <td><%= specificProduct.productId.name %></td>
           <td><%= specificProduct.quantity %></td>
           <td>₹<%= specificProduct.priceAtPurchase.toFixed(2) %></td>
-          <td>₹<%= (specificProduct.totalProductAmount - specificProduct.discountedPrice).toFixed(2) %></td>
-          <td>₹<%= orderData.deliveryCharge %></td>
           <td><% if (orderData.deliveryCharge) { %>
             <%= orderData.orderAmount %>
           <% } else if (specificProduct.discountedPrice) { %>
-            <%= specificProduct.discountedPrice %>
-          <% } else { %>
-            <%= specificProduct.totalProductAmount %>
+            <%= specificProduct.totalProductAmount + (specificProduct.priceAtPurchase - specificProduct.discountedPrice).toFixed(2)*  specificProduct.quantity %>
+            <% } else { %>
+              <%= specificProduct.discountedPrice %>
           <% } %></td>
+          <td>₹<%= orderData.deliveryCharge %></td>
+          <td>₹<%= (specificProduct.priceAtPurchase - specificProduct.discountedPrice).toFixed(2)*  specificProduct.quantity%></td>
+
       </tr>
   </tbody>
   
@@ -400,9 +401,9 @@
               <td colspan="3" style="font-weight: bold;">₹<% if (orderData.deliveryCharge) { %>
                 <%= orderData.orderAmount %>
               <% } else if (specificProduct.discountedPrice) { %>
-                <%= specificProduct.discountedPrice %>
-              <% } else { %>
                 <%= specificProduct.totalProductAmount %>
+                <% } else { %>
+                  <%= specificProduct.discountedPrice %>
               <% } %></td>
           </tr>
       </tfoot>

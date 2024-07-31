@@ -277,7 +277,7 @@ const placeOrder = async (req, res) => {
       });
     }
 
-    const { selectedAddress, paymentMethod, subtotal, discount, deliveryCharge, total, couponCode } = req.body;
+    const { selectedAddress, paymentMethod, subtotal, deliveryCharge, total, couponCode, discount } = req.body;
 
     if (!selectedAddress) {
       return res.status(400).json({
@@ -305,8 +305,7 @@ const placeOrder = async (req, res) => {
     const currentOffers = await ProductOffer.find();
     const currentCategoryOffers = await CategoryOffer.find();
 
-    
-    const discountPercentage = discount / subtotal;
+    let orderSubtotal = 0;
 
     for (const cartItem of cartItems) {
       for (const productItem of cartItem.product) {
@@ -327,14 +326,12 @@ const placeOrder = async (req, res) => {
         let discountedPrice = product.price;
         let appliedDiscount = 0;
 
-      
         const productOffer = currentOffers.find(
           offer => offer.productId.toString() === product._id.toString()
         );
         if (productOffer) {
           appliedDiscount = Math.max(appliedDiscount, productOffer.discountValue);
         }
-
 
         const categoryOffer = currentCategoryOffers.find(
           offer => offer.categoryId.toString() === product.category._id.toString()
@@ -347,18 +344,15 @@ const placeOrder = async (req, res) => {
           discountedPrice = Math.ceil(product.price - (product.price * appliedDiscount) / 100);
         }
 
-   
-        const couponDiscount = Math.round(discountedPrice * discountPercentage);
-
-
-        const finalPrice = discountedPrice - couponDiscount;
+        const itemTotal = discountedPrice * productItem.quantity;
+        orderSubtotal += itemTotal;
 
         orderedItems.push({
           productId: productItem.productId,
           quantity: productItem.quantity,
-          priceAtPurchase: productItem.price,
-          discountedPrice:finalPrice * productItem.quantity,
-          totalProductAmount: productItem.price* productItem.quantity,
+          priceAtPurchase: product.price,
+          discountedPrice: discountedPrice,
+          totalProductAmount: itemTotal,
           status: 'pending'
         });
 
@@ -367,7 +361,18 @@ const placeOrder = async (req, res) => {
       }
     }
 
-    const orderAmount = total ; 
+    
+    const discountRatio = discount / orderSubtotal;
+    let distributedDiscount = 0;
+    for (const orderedItem of orderedItems) {
+      const itemDiscount = Math.floor(orderedItem.totalProductAmount * discountRatio);
+      orderedItem.discountedPrice -= Math.floor(itemDiscount / orderedItem.quantity);
+      orderedItem.totalProductAmount -= itemDiscount;
+      distributedDiscount += itemDiscount;
+    }
+
+
+    const orderAmount = orderSubtotal - distributedDiscount + deliveryCharge;
 
     if (paymentMethod === "wallet") {
       const userWallet = await Wallet.findOne({ userId });
@@ -406,17 +411,39 @@ const placeOrder = async (req, res) => {
       deliveryCharge,
       paymentMethod,
       coupon: couponCode,
-      discount,
+      discount, // Store the applied discount amount
       paymentStatus: paymentMethod !== "razorpay",
     });
 
     await orderData.save();
 
- 
-    const removeCartItems = async () => {
-      await CartItem.deleteMany({ _id: { $in: cartId } });
-    };
+    await CartItem.deleteMany({ _id: { $in: cartId } });
 
+    const eligibleCoupons = await Coupon.find({
+      minPurchaseAmount: { $lte: orderAmount },
+      validity: { $gt: new Date() }
+    });
+
+    if (eligibleCoupons.length > 0) {
+      const user = await User.findById(userId);
+
+      const newCoupons = eligibleCoupons.filter(coupon =>
+        !user.availableCoupons.some(availableCoupon =>
+          availableCoupon.couponCode === coupon.code
+        )
+      );
+
+      if (newCoupons.length > 0) {
+        const couponUpdates = newCoupons.map(coupon => ({
+          couponId: coupon._id,
+          couponCode: coupon.code
+        }));
+
+        await User.findByIdAndUpdate(userId, {
+          $push: { availableCoupons: { $each: couponUpdates } }
+        });
+      }
+    }
 
     if (paymentMethod === "razorpay") {
       const options = {
@@ -434,8 +461,6 @@ const placeOrder = async (req, res) => {
           });
         }
 
-        await removeCartItems();
-
         res.json({
           success: true,
           orderId: orderData._id,
@@ -446,9 +471,6 @@ const placeOrder = async (req, res) => {
         });
       });
     } else {
-    
-      await removeCartItems();
-
       res.json({
         success: true,
         message: "Order placed successfully",
@@ -462,6 +484,7 @@ const placeOrder = async (req, res) => {
     });
   }
 };
+
 
 
 
@@ -676,6 +699,64 @@ const applyCoupon = async (req, res) => {
   }
 };
 
+const removeCoupon = async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const userData = await User.findById(userId);
+
+    if (!userData) res.redirect("/login");
+
+    const { couponCode } = req.body;
+    const coupon = await Coupon.findOne({ code: couponCode });
+
+    if (!coupon) {
+      return res.status(404).json({
+        success: false,
+        message: "Coupon not found",
+      });
+    }
+
+    const isCouponUsed = userData.usedCoupons.includes(coupon._id.toString());
+
+    if (!isCouponUsed) {
+      return res.status(400).json({
+        success: false,
+        message: "Coupon has not been used",
+      });
+    }
+
+    // Remove coupon from used coupons
+    userData.usedCoupons = userData.usedCoupons.filter(
+      (usedCoupon) => usedCoupon.toString() !== coupon._id.toString()
+    );
+    await userData.save();
+
+    // Recalculate order total without coupon
+    const cartItems = await CartItem.find({ userId }).populate(
+      "product.productId"
+    );
+
+    let orderAmount = 0;
+    cartItems.forEach((item) => {
+      item.product.forEach((product) => {
+        orderAmount += product.totalPrice;
+      });
+    });
+
+    return res.status(200).json({
+      success: true,
+      newTotal: orderAmount,
+      discount: 0,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+
 const renderOrderPlaced = async (req, res) => {
   try {
     res.render("orderplaced");
@@ -696,5 +777,6 @@ module.exports = {
   insertCheckoutAddress,
   removeAddress,
   applyCoupon,
+  removeCoupon,
   renderOrderPlaced,
 };

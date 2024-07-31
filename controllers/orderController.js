@@ -129,8 +129,7 @@ const renderReturnRequest = async(req,res)=>{
   
       await order.save();
 
-
-      const baseRefundAmount = orderedItem.discountedPrice ? orderedItem.discountedPrice : orderedItem.totalProductAmount;
+      const baseRefundAmount = orderedItem.discountedPrice ? orderedItem.discountedPrice * orderedItem.quantity: orderedItem.totalProductAmount* orderedItem.quantity;
       const refundAmount = order.deliveryCharge ? baseRefundAmount + order.deliveryCharge : baseRefundAmount;
   
 

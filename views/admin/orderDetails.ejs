@@ -67,15 +67,15 @@
                   <td><%= product.quantity %></td>
                   <td><%= product.priceAtPurchase %></td>
                   <td><%= product.totalProductAmount %></td>
-                  <td><%= product.totalProductAmount - product.discountedPrice %></td>
+                  <td><%= (product.priceAtPurchase - product.discountedPrice) * product.quantity %></td>
                   <td><%= order.deliveryCharge %></td>
                   <td>
                     <% if (order.deliveryCharge) { %>
                       <%= order.orderAmount %>
                     <% } else if (product.discountedPrice) { %>
-                      <%= product.discountedPrice %>
+                      <%= product.discountedPrice*product.quantity %>
                     <% } else { %>
-                      <%= product.totalProductAmount %>
+                      <%= product.totalProductAmount*product.quantity %>
                     <% } %>
                   </td>
                 </tr>

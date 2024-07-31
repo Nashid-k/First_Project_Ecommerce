@@ -37,11 +37,12 @@ const addCoupons = async (req, res) => {
       const expiryDate = new Date(currentDate);
       expiryDate.setDate(currentDate.getDate() + parseInt(validity));
   
-      if (discountValue > minPurchaseAmount) {
-        req.flash('error', 'Discount cannot exceed minimum purchase amount');
+      if (parseFloat(discountValue) > parseFloat(minPurchaseAmount)) {
+        console.log(discountValue + ' discountValue');
+        console.log(minPurchaseAmount + ' minPurchaseAmount');
+        req.flash('error', 'Discount value cannot exceed minimum purchase amount');
         return res.redirect('/admin/coupons');
       }
-  
       const newCoupon = new Coupon({
         code,
         discountType,
@@ -67,32 +68,31 @@ const addCoupons = async (req, res) => {
 
   const removeCoupon = async (req, res) => {
     try {
-        const couponId = req.params.couponId;
-
-
-        const usersWithAvailableCoupon = await User.find({ "availableCoupons.couponId": couponId });
-        const usersWithUsedCoupon = await User.find({ "usedCoupons": couponId });
-
+      const couponId = req.params.couponId;
   
-        for (const user of usersWithAvailableCoupon) {
-            user.availableCoupons = user.availableCoupons.filter(coupon => coupon.couponId.toString() !== couponId);
-            await user.save(); 
-        }
-
-
-        for (const user of usersWithUsedCoupon) {
-            user.usedCoupons = user.usedCoupons.filter(id => id.toString() !== couponId);
-            await user.save(); 
-        }
-
-        await Coupon.findByIdAndDelete(couponId);
-
-        res.status(200).json({ message: 'Coupon removed successfully' });
+ 
+      await User.updateMany(
+        { "availableCoupons.couponId": couponId },
+        { $pull: { availableCoupons: { couponId } } }
+      );
+  
+    
+      await User.updateMany(
+        { usedCoupons: couponId },
+        { $pull: { usedCoupons: couponId } }
+      );
+  
+    
+      await Coupon.findByIdAndDelete(couponId);
+  
+      res.status(200).json({ message: 'Coupon removed successfully' });
     } catch (error) {
-    return res.status(500).send({ error: "Internal server error" });
-        res.status(500).json({ error: 'Failed to remove coupon' });
+      console.error("Error in removeCoupon:", error);
+      res.status(500).json({ error: 'Failed to remove coupon' });
     }
-}
+  };
+  
+  
 
 
 

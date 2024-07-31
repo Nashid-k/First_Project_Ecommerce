@@ -529,29 +529,75 @@ const sortProducts = async (req, res) => {
 };
 
 
+
+const calculateDiscountedPrice = async (product) => {
+  const currentProductOffers = await ProductOffer.find();
+  const currentCategoryOffers = await CategoryOffer.find();
+  const categories = await Category.find({ is_listed: true });
+
+  let discountedPrice = product.price;
+  let discountPercent = 0;
+
+  const productOffer = currentProductOffers.find(
+    (offer) => offer.productId.toString() === product._id.toString()
+  );
+
+  if (productOffer) {
+    discountPercent = productOffer.discountValue;
+    discountedPrice = product.price - (product.price * discountPercent) / 100;
+  }
+
+  const category = categories.find(
+    (cat) => cat._id.toString() === product.category.toString()
+  );
+  if (category) {
+    const categoryOffer = currentCategoryOffers.find(
+      (offer) => offer.categoryId.toString() === category._id.toString()
+    );
+    if (categoryOffer) {
+      discountPercent = Math.max(discountPercent, categoryOffer.discountValue);
+      discountedPrice = product.price - (product.price * discountPercent) / 100;
+    }
+  }
+
+  return {
+    discountedPrice: Math.round(discountedPrice),
+    discountPercent
+  };
+};
+
+
+
 const addToWishlist = async (req, res) => {
   try {
     const userId = req.session.userId;
     const { productId } = req.query;
     const product = await Products.findById(productId);
+    
+    const { discountedPrice, discountPercent } = await calculateDiscountedPrice(product);
+
     let wishlistItem = await WishlistItem.findOne({
       userId: userId,
       "product.productId": productId,
     });
+    
     if (!wishlistItem) {
       wishlistItem = new WishlistItem({
         userId: userId,
-        product: {
+        product: [{
           productId: productId,
-        },
+          discountedPrice: discountedPrice,
+          discountPercent: discountPercent
+        }],
       });
     } else {
-      res.redirect("/wishlist");
+      wishlistItem.product[0].discountedPrice = discountedPrice;
+      wishlistItem.product[0].discountPercent = discountPercent;
     }
+    
     await wishlistItem.save();
     res.redirect("/wishlist");
   } catch (error) {
-
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -560,20 +606,26 @@ const renderWishlist = async (req, res) => {
   try {
     if (req.session.userId) {
       const userData = await User.findById(req.session.userId);
-      const wishlistItem = await WishlistItem.find({
+      let wishlistItems = await WishlistItem.find({
         userId: req.session.userId,
       }).populate("product.productId");
-      
+
+      // Update prices for each item
+      for (let item of wishlistItems) {
+        const { discountedPrice, discountPercent } = await calculateDiscountedPrice(item.product[0].productId);
+        item.product[0].discountedPrice = discountedPrice;
+        item.product[0].discountPercent = discountPercent;
+        await item.save();
+      }
 
       res.render("wishlist", {
-        wishlistItems: wishlistItem,
+        wishlistItems: wishlistItems,
         userData: userData,
       });
     } else {
       res.redirect("/login");
     }
   } catch (error) {
-   
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

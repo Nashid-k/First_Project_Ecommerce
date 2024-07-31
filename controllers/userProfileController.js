@@ -385,7 +385,7 @@ const cancelOrder = async (req, res) => {
         }
 
         
-        const baseRefundAmount = orderedItem.discountedPrice ? orderedItem.discountedPrice : orderedItem.totalProductAmount;
+        const baseRefundAmount = orderedItem.discountedPrice ? orderedItem.discountedPrice * orderedItem.quantity: orderedItem.totalProductAmount* orderedItem.quantity;
         const refundAmount = order.deliveryCharge ? baseRefundAmount + order.deliveryCharge : baseRefundAmount;
 
 
@@ -506,13 +506,26 @@ const renderCoupon = async (req, res) => {
             return res.render('coupons', { couponData: [], userData });
         }
 
-        const couponData = await Coupons.find({ _id: { $in: userCoupons.map(coupon => coupon.couponId) } });
+
+        const allCoupons = await Coupons.find({ _id: { $in: userCoupons.map(coupon => coupon.couponId) } });
         
+
+        const currentDate = new Date();
+        const couponData = allCoupons.map(coupon => {
+            const isExpired = new Date(coupon.validity) < currentDate;
+            const isUsed = userData.usedCoupons.includes(coupon._id.toString());
+            return {
+                ...coupon.toObject(),
+                isExpired,
+                isUsed
+            };
+        });
+
         res.render('coupons', { couponData, userData });
     } catch (error) {
         console.log(error.message);
         req.flash("error", "Internal server error");
-        res.redirect("/dashboard"); 
+        res.redirect("/dashboard");
     }
 }
 
@@ -709,7 +722,7 @@ const verifyPayment = async (req, res) => {
             specificProduct.productId.name,
             specificProduct.quantity,
             formatCurrency(specificProduct.priceAtPurchase * 100),
-            formatCurrency(specificProduct.totalProductAmount * 100)
+            formatCurrency(specificProduct.priceAtPurchase *specificProduct.quantity* 100)
         );
 
         generateHr(position + 20);
@@ -721,11 +734,11 @@ const verifyPayment = async (req, res) => {
             "",
             "",
             "Subtotal",
-            formatCurrency(specificProduct.totalProductAmount * 100)
+            formatCurrency(specificProduct.priceAtPurchase *specificProduct.quantity* 100)
         );
 
         const discountPosition = subtotalPosition + 20;
-        const discount = (specificProduct.totalProductAmount - specificProduct.discountedPrice) * 100;
+        const discount = (specificProduct.priceAtPurchase - specificProduct.discountedPrice)*specificProduct.quantity * 100;
         generateTableRow(
             doc,
             discountPosition,
@@ -743,7 +756,7 @@ const verifyPayment = async (req, res) => {
             "",
             "",
             "Total",
-            formatCurrency(specificProduct.discountedPrice * 100)
+            formatCurrency(specificProduct.discountedPrice *specificProduct.quantity * 100)
         );
         doc.font("Helvetica");
 

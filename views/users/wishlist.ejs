@@ -1,3 +1,17 @@
+<style>
+    .original-price {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 0.9em;
+    margin-left: 5px;
+}
+
+.discount-percent {
+    color: #e44d26;
+    font-size: 0.9em;
+    margin-left: 5px;
+}
+</style>
 <%- include('../layouts/header') %>
 
 <!-- Breadcrumb Begin -->
@@ -43,7 +57,15 @@
                                                 <span>No product information available</span>
                                             <% } %>
                                         </td>
-                                        <td class="wishlist__price">₹ <span class="price" data-price="<%= wishlistItem.product[0].price %>"><%= wishlistItem.product[0].productId.price %></span></td>
+                                        <td class="wishlist__price">
+                                            ₹ <span class="price" data-price="<%= wishlistItem.product[0].productId.price %>">
+                                                <%= wishlistItem.product[0].discountedPrice || wishlistItem.product[0].productId.price %>
+                                            </span>
+                                            <% if (wishlistItem.product[0].discountPercent > 0) { %>
+                                                <span class="original-price">₹ <%= wishlistItem.product[0].productId.price %></span>
+                                                <span class="discount-percent">(<%= wishlistItem.product[0].discountPercent %>% off)</span>
+                                            <% } %>
+                                        </td>
                                         <td class="wishlist__cart">
                                             <button class="add-to-cart-btn" onclick="location.href='/addToCart?productId=<%=wishlistItem.product[0].productId._id %>'">Add to Cart</button>
                                             <button class="remove-from-wishlist-btn" data-productId="<%= wishlistItem.product[0].productId._id %>">Remove</button>
