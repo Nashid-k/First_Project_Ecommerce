@@ -303,14 +303,3 @@ Project Link: [https://github.com/Nashid-k/First_Project_Ecommerce](https://gith
 - **EJS** for powerful templating capabilities
 
 ---
-
-## 📸 Screenshots
-
-> *Add screenshots of your application here to showcase the UI and features*
-
-- [ ] Homepage
-- [ ] Product Catalog
-- [ ] Shopping Cart
-- [ ] Checkout Process
-- [ ] Admin Dashboard
-- [ ] Order Management
